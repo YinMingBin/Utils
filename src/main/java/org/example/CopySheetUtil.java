@@ -22,20 +22,18 @@ public final class CopySheetUtil {
     }
 
     public static void copySheets(HSSFSheet newSheet, HSSFSheet sheet) {
-    copySheets(newSheet, sheet, true);
-}
+        copySheets(newSheet, sheet, true);
+    }
 
-    public static void copySheets(HSSFSheet newSheet, HSSFSheet sheet,
-                                  boolean copyStyle) {
+    public static void copySheets(HSSFSheet newSheet, HSSFSheet sheet, boolean copyStyle) {
         int maxColumnNum = 0;
-        Map<Integer, HSSFCellStyle> styleMap = (copyStyle) ? new HashMap<Integer, HSSFCellStyle>()
+        Map<Integer, HSSFCellStyle> styleMap = (copyStyle) ? new HashMap<>()
                 : null;
         for (int i = sheet.getFirstRowNum(); i <= sheet.getLastRowNum(); i++) {
             HSSFRow srcRow = sheet.getRow(i);
             HSSFRow destRow = newSheet.createRow(i);
             if (srcRow != null) {
-                CopySheetUtil.copyRow(sheet, newSheet, srcRow, destRow,
-                        styleMap);
+                copyRow(sheet, newSheet, srcRow, destRow, styleMap);
                 if (srcRow.getLastCellNum() > maxColumnNum) {
                     maxColumnNum = srcRow.getLastCellNum();
                 }
@@ -94,18 +92,15 @@ public final class CopySheetUtil {
      * @param newCell
      * @param styleMap
      */
-    public static void copyCell(HSSFCell oldCell, HSSFCell newCell,
-                                Map<Integer, HSSFCellStyle> styleMap) {
+    public static void copyCell(HSSFCell oldCell, HSSFCell newCell, Map<Integer, HSSFCellStyle> styleMap) {
         if (styleMap != null) {
-            if (oldCell.getSheet().getWorkbook() == newCell.getSheet()
-                    .getWorkbook()) {
+            if (oldCell.getSheet().getWorkbook() == newCell.getSheet().getWorkbook()) {
                 newCell.setCellStyle(oldCell.getCellStyle());
             } else {
                 int stHashCode = oldCell.getCellStyle().hashCode();
                 HSSFCellStyle newCellStyle = styleMap.get(stHashCode);
                 if (newCellStyle == null) {
-                    newCellStyle = newCell.getSheet().getWorkbook()
-                            .createCellStyle();
+                    newCellStyle = newCell.getSheet().getWorkbook().createCellStyle();
                     newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
                     styleMap.put(stHashCode, newCellStyle);
                 }
