@@ -103,7 +103,7 @@ public class App {
                             if (o != null) {
                                 String subEnding = cellValue.substring(ending + this.finish.length());
                                 String str = split[splitLen - 1];
-                                if (substring.indexOf(this.x) >= 0 || substring.indexOf(this.y) >= 0) {
+                                if (o instanceof Map || o instanceof List || o.getClass().isArray()) {
                                     List<CellContent> cellContents = this.allArray.get(s);
                                     if (CollectionUtils.isEmpty(cellContents)) {
                                         cellContents = new ArrayList<>();
@@ -191,7 +191,7 @@ public class App {
             }else{
                 setXArrayData((Object[]) data, sheet, rowSite, cellSite);
             }
-        }else if(name.indexOf(this.y) >= 0) {
+        }else {
             if (data instanceof Map) {
                 setYMapData((HashMap) data, cellContents, sheet, site);
             } else if (data instanceof List) {
@@ -211,7 +211,7 @@ public class App {
                 Integer rowSite = cellContent.getRowSite();
                 Integer cellSite = cellContent.getCellSite() + (site > -9999 ? site : i);
                 if(cellContent.getName().equals(key)){
-                    if(!(key.indexOf(this.x) >= 0 || key.indexOf(this.y) >= 0)){
+                    if(!(value instanceof Map || value instanceof List || value.getClass().isArray())){
                         HSSFCell hssfCell = setCellValue(value, sheet, rowSite, cellSite);
                         setCellStyle(hssfCell, allCellStyle.get(cellContent.getName()));
                     }else{
@@ -231,7 +231,7 @@ public class App {
                 Integer rowSite = cellContent.getRowSite() + (site > -9999 ? site : i);
                 Integer cellSite = cellContent.getCellSite();
                 if(cellContent.getName().equals(key)){
-                    if(!(key.indexOf(this.x) >= 0 || key.indexOf(this.y) >= 0)){
+                    if(!(value instanceof Map || value instanceof List || value.getClass().isArray())){
                         HSSFCell hssfCell = setCellValue(value, sheet, rowSite, cellSite);
                         setCellStyle(hssfCell, allCellStyle.get(cellContent.getName()));
                     }else{
@@ -245,7 +245,7 @@ public class App {
     public void setXListData(String name, List<Object> datas, List<CellContent> cellContents, HSSFSheet sheet, int rowSite, int cellSite){
         for (int i = 0; i < datas.size(); i++) {
             Object o = datas.get(i);
-            if(o instanceof Map || o.getClass().isArray()){
+            if(o instanceof Map || o instanceof List || o.getClass().isArray()){
                 eachTransferStop(name, o, cellContents, sheet, rowSite, cellSite, i);
             }else {
                 HSSFCell hssfCell = setCellValue(o, sheet, rowSite, cellSite + 1);
@@ -257,7 +257,7 @@ public class App {
     public void setYListData(String name, List<Object> datas, List<CellContent> cellContents, HSSFSheet sheet, int rowSite, int cellSite){
         for (int i = 0; i < datas.size(); i++) {
             Object o = datas.get(i);
-            if(o instanceof Map || o.getClass().isArray()){
+            if(o instanceof Map || o instanceof List || o.getClass().isArray()){
                 eachTransferStop(name, o, cellContents, sheet, rowSite, cellSite, i);
             }else {
                 HSSFCell hssfCell = setCellValue(o, sheet, rowSite + i, cellSite, true);
