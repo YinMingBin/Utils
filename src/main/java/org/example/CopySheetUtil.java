@@ -1,11 +1,6 @@
 package org.example;
 
-import org.apache.poi.hssf.usermodel.HSSFCell;
-import org.apache.poi.hssf.usermodel.HSSFCellStyle;
-import org.apache.poi.hssf.usermodel.HSSFRow;
-import org.apache.poi.hssf.usermodel.HSSFSheet;
-import org.apache.poi.ss.usermodel.CellType;
-import org.apache.poi.ss.usermodel.FormulaError;
+import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 
 import java.util.HashMap;
@@ -21,17 +16,17 @@ public final class CopySheetUtil {
     public CopySheetUtil() {
     }
 
-    public static void copySheets(HSSFSheet newSheet, HSSFSheet sheet) {
+    public static void copySheets(Sheet newSheet, Sheet sheet) {
         copySheets(newSheet, sheet, true);
     }
 
-    public static void copySheets(HSSFSheet newSheet, HSSFSheet sheet, boolean copyStyle) {
+    public static void copySheets(Sheet newSheet, Sheet sheet, boolean copyStyle) {
         int maxColumnNum = 0;
-        Map<Integer, HSSFCellStyle> styleMap = (copyStyle) ? new HashMap<>()
+        Map<Integer, CellStyle> styleMap = (copyStyle) ? new HashMap<>()
                 : null;
         for (int i = sheet.getFirstRowNum(); i <= sheet.getLastRowNum(); i++) {
-            HSSFRow srcRow = sheet.getRow(i);
-            HSSFRow destRow = newSheet.createRow(i);
+            Row srcRow = sheet.getRow(i);
+            Row destRow = newSheet.createRow(i);
             if (srcRow != null) {
                 copyRow(sheet, newSheet, srcRow, destRow, styleMap);
                 if (srcRow.getLastCellNum() > maxColumnNum) {
@@ -52,15 +47,15 @@ public final class CopySheetUtil {
      * @param destRow
      * @param styleMap
      */
-    public static void copyRow(HSSFSheet srcSheet, HSSFSheet destSheet,
-                               HSSFRow srcRow, HSSFRow destRow,
-                               Map<Integer, HSSFCellStyle> styleMap) {
-        Set<CellRangeAddressWrapper> mergedRegions = new TreeSet<CellRangeAddressWrapper>();
+    public static void copyRow(Sheet srcSheet, Sheet destSheet,
+                               Row srcRow, Row destRow,
+                               Map<Integer, CellStyle> styleMap) {
+        Set<CellRangeAddressWrapper> mergedRegions = new TreeSet<>();
         destRow.setHeight(srcRow.getHeight());
         int deltaRows = destRow.getRowNum() - srcRow.getRowNum(); //如果copy到另一个sheet的起始行数不同
         for (int j = srcRow.getFirstCellNum(); j <= srcRow.getLastCellNum(); j++) {
-            HSSFCell oldCell = srcRow.getCell(j); // old cell
-            HSSFCell newCell = destRow.getCell(j); // new cell
+            Cell oldCell = srcRow.getCell(j); // old cell
+            Cell newCell = destRow.getCell(j); // new cell
             if (oldCell != null) {
                 if (newCell == null) {
                     newCell = destRow.createCell(j);
@@ -92,13 +87,13 @@ public final class CopySheetUtil {
      * @param newCell
      * @param styleMap
      */
-    public static void copyCell(HSSFCell oldCell, HSSFCell newCell, Map<Integer, HSSFCellStyle> styleMap) {
+    public static void copyCell(Cell oldCell, Cell newCell, Map<Integer, CellStyle> styleMap) {
         if (styleMap != null) {
             if (oldCell.getSheet().getWorkbook() == newCell.getSheet().getWorkbook()) {
                 newCell.setCellStyle(oldCell.getCellStyle());
             } else {
                 int stHashCode = oldCell.getCellStyle().hashCode();
-                HSSFCellStyle newCellStyle = styleMap.get(stHashCode);
+                CellStyle newCellStyle = styleMap.get(stHashCode);
                 if (newCellStyle == null) {
                     newCellStyle = newCell.getSheet().getWorkbook().createCellStyle();
                     newCellStyle.cloneStyleFrom(oldCell.getCellStyle());
@@ -118,7 +113,7 @@ public final class CopySheetUtil {
         }else if (cellTypeEnum == CellType.BOOLEAN){
             newCell.setCellValue(oldCell.getBooleanCellValue());
         }else if (cellTypeEnum == CellType.ERROR){
-            newCell.setCellErrorValue(FormulaError.forInt(oldCell.getErrorCellValue()));
+            newCell.setCellErrorValue(oldCell.getErrorCellValue());
         }else if (cellTypeEnum == CellType.FORMULA){
             newCell.setCellFormula(oldCell.getCellFormula());
         }
@@ -126,7 +121,7 @@ public final class CopySheetUtil {
     }
 
     // 获取merge对象
-    public static CellRangeAddress getMergedRegion(HSSFSheet sheet, int rowNum,
+    public static CellRangeAddress getMergedRegion(Sheet sheet, int rowNum,
                                                    short cellNum) {
         for (int i = 0; i < sheet.getNumMergedRegions(); i++) {
             CellRangeAddress merged = sheet.getMergedRegion(i);
