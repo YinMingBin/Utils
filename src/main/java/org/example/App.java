@@ -1,13 +1,12 @@
 package org.example;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
-import org.apache.poi.poifs.filesystem.POIFSFileSystem;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,10 +25,11 @@ public class App {
     private final String x = "X-";
 
     public static void main(String[] args) throws IOException {
-//        ClassPathResource resource = new ClassPathResource("test.xls");
-        InputStream is = new FileInputStream("target/classes/test.xls");
-        POIFSFileSystem ps = new POIFSFileSystem(is);
-        Workbook wb = new HSSFWorkbook(ps);
+        ClassPathResource resource = new ClassPathResource("test.xlsx");
+        InputStream is = resource.getInputStream();
+//        POIFSFileSystem ps = new POIFSFileSystem(is);
+//        Workbook wb = new HSSFWorkbook(is);
+        Workbook wb = new XSSFWorkbook(is);
         Map<String, Object> datas = new HashMap<>();
         datas.put("productNo", "001");
         datas.put("iqcNo", "002");
@@ -64,7 +64,7 @@ public class App {
 
         App app = new App();
         app.excel(wb, datas);
-        FileOutputStream os = new FileOutputStream("D:/A临时/excel/test2.xls");
+        FileOutputStream os = new FileOutputStream("D:/A临时/excel/test2.xlsx");
         wb.write(os);
         os.flush();
         os.close();
@@ -76,13 +76,97 @@ public class App {
         setBasicData(sheetAt, datas);
 
         Sheet sheet = wb.createSheet();
-        try {
-            CopySheetUtil.copySheets(sheet, sheetAt);
-        }catch (IllegalStateException ise) {
-            System.out.println("移动合并单元格失败：" + ise);
-        }
+        copySheet(sheetAt, sheet);
+
         setAllArray(sheet, datas);
 
+    }
+
+    public void copySheet(Sheet sheet, Sheet newSheet){
+        int firstRowNum = sheet.getFirstRowNum();
+        int lastRowNum = sheet.getLastRowNum();
+        int maxColumnNum = 0;
+        for (int i = firstRowNum; i < lastRowNum; i++) {
+            Row row = sheet.getRow(i);
+            if(row != null) {
+                Row newRow = newSheet.getRow(i);
+                if (newRow == null) {
+                    newRow = newSheet.createRow(i);
+                }
+                copyRow(row, newRow);
+                short lastCellNum = row.getLastCellNum();
+                if (lastCellNum > maxColumnNum) {
+                    maxColumnNum = lastCellNum;
+                }
+            }
+        }
+
+        int sheetMergeCount = sheet.getNumMergedRegions();
+        for (int i = 0; i < sheetMergeCount; i++) {
+            // 获取合并后的单元格
+            CellRangeAddress range = sheet.getMergedRegion(i);
+            int firstRow = range.getFirstRow();
+            int lastRow = range.getLastRow();
+            int firstColumn = range.getFirstColumn();
+            int lastColumn = range.getLastColumn();
+            CellRangeAddress cra = new CellRangeAddress(firstRow, lastRow, firstColumn, lastColumn);
+            newSheet.addMergedRegion(cra);
+        }
+
+        for (int i = 0; i < maxColumnNum; i++) {
+            newSheet.setColumnWidth(i, sheet.getColumnWidth(i));
+        }
+
+    }
+
+    public void copyRow(Row row, Row newRow){
+        short height = row.getHeight();
+        newRow.setHeight(height);
+        CellStyle rowStyle = row.getRowStyle();
+        if (rowStyle != null) {
+            newRow.setRowStyle(rowStyle);
+        }
+        float heightInPoints = row.getHeightInPoints();
+        newRow.setHeightInPoints(heightInPoints);
+        int rowNum = row.getRowNum();
+        newRow.setRowNum(rowNum);
+        boolean zeroHeight = row.getZeroHeight();
+        newRow.setZeroHeight(zeroHeight);
+
+        short firstCellNum = row.getFirstCellNum();
+        short lastCellNum = row.getLastCellNum();
+
+        for (int i = firstCellNum; i < lastCellNum; i++) {
+            Cell cell = row.getCell(i);
+            if(cell != null) {
+                Cell newCell = newRow.getCell(i);
+                if (newCell == null) {
+                    newCell = newRow.createCell(i);
+                }
+                copyCell(cell, newCell);
+            }
+        }
+    }
+
+    public void copyCell(Cell cell, Cell newCell){
+        CellType cellTypeEnum = cell.getCellTypeEnum();
+        if(cellTypeEnum == CellType.STRING){
+            newCell.setCellValue(cell.getStringCellValue());
+        }else if (cellTypeEnum == CellType.NUMERIC){
+            newCell.setCellValue(cell.getNumericCellValue());
+        }else if (cellTypeEnum == CellType.BLANK){
+            newCell.setCellType(cellTypeEnum);
+        }else if (cellTypeEnum == CellType.BOOLEAN){
+            newCell.setCellValue(cell.getBooleanCellValue());
+        }else if (cellTypeEnum == CellType.ERROR){
+            newCell.setCellErrorValue(cell.getErrorCellValue());
+        }else if (cellTypeEnum == CellType.FORMULA){
+            newCell.setCellFormula(cell.getCellFormula());
+        }
+
+        newCell.setCellStyle(cell.getCellStyle());
+        newCell.setCellComment(cell.getCellComment());
+        newCell.setHyperlink(cell.getHyperlink());
     }
 
     /**
@@ -510,34 +594,6 @@ public class App {
     }
 
     /**
-     * 判断单元格类型（普通单元格，合并单元格）调用相关方法进行移动
-     * 如果单元格是赋值单元格（${name}）,更新单元格信息CellInfo
-     * @param sheet
-     * @param value 单元格值
-     * @param rowIndex 所在行
-     * @param cellIndex 所在列
-     * @param moveNum 移动列数
-     */
-    public void moveY(Sheet sheet, String value, int rowIndex, int cellIndex, int moveNum){
-        MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-        if (mergedRegion.isMerged()) {
-            moveMergeCellY(sheet, mergedRegion, moveNum);
-        } else {
-            moveCellY(sheet, rowIndex, cellIndex, moveNum);
-        }
-        if(value.indexOf(this.start) >= 0 && value.indexOf(this.finish) >= 0){
-            int initially = value.indexOf(this.start);
-            int ending = value.indexOf(this.finish);
-            String substring = value.substring(initially + this.start.length(), ending);
-            String[] split = substring.split("\\.");
-            int splitLen = split.length;
-            Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(split[0]);
-            CellInfo cellInfo = cellInfos.get(split[splitLen - 1]);
-            cellInfo.setRowIndex(cellInfo.getRowIndex() + moveNum);
-        }
-    }
-
-    /**
      * 左右移动单元格
      * @param sheet
      * @param rowIndex 单元格所在行
@@ -552,25 +608,57 @@ public class App {
         for (int i = (isPlus ? 1 : -1); (isPlus ? i <= time : i >= time); i+= (isPlus ? 1 : -1)) {
             int cindex = cellIndex + i;
             newCell = row.getCell(cindex);
+            int moveNum = time - i + 1;
             if(newCell != null ){
                 String value = newCell.toString();
                 if(!StringUtils.isEmpty(value)){
-                    int moveNum = time - i + 1;
                     moveX(sheet, value, rowIndex, cindex, moveNum);
                     break;
                 }
             }else {
                 if(newCell == null){
+                    MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+                    if(mergedRegion.isMerged()){
+                        moveMergeCellY(sheet, mergedRegion, moveNum);
+                    }
                     newCell = row.createCell(cellIndex + 1);
                 }
             }
         }
-        CopySheetUtil.copyCell(cell, newCell, new HashMap<>());
+        copyCell(cell, newCell);
         copyCellStyle(cell, newCell);
         sheet.setColumnWidth(cellIndex + time, sheet.getColumnWidth(cellIndex));
         cell.setCellStyle(null);
         cell.setCellValue("");
     }
+
+/**
+ * 判断单元格类型（普通单元格，合并单元格）调用相关方法进行移动
+ * 如果单元格是赋值单元格（${name}）,更新单元格信息CellInfo
+ * @param sheet
+ * @param value 单元格值
+ * @param rowIndex 所在行
+ * @param cellIndex 所在列
+ * @param moveNum 移动列数
+ */
+public void moveY(Sheet sheet, String value, int rowIndex, int cellIndex, int moveNum){
+    MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+    if (mergedRegion.isMerged()) {
+        moveMergeCellY(sheet, mergedRegion, moveNum);
+    } else {
+        moveCellY(sheet, rowIndex, cellIndex, moveNum);
+    }
+    if(value.indexOf(this.start) >= 0 && value.indexOf(this.finish) >= 0){
+        int initially = value.indexOf(this.start);
+        int ending = value.indexOf(this.finish);
+        String substring = value.substring(initially + this.start.length(), ending);
+        String[] split = substring.split("\\.");
+        int splitLen = split.length;
+        Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(split[0]);
+        CellInfo cellInfo = cellInfos.get(split[splitLen - 1]);
+        cellInfo.setRowIndex(cellInfo.getRowIndex() + moveNum);
+    }
+}
 
     /**
      * 上下移动单元格
@@ -593,12 +681,16 @@ public class App {
                 newCell = newRow.createCell(cellIndex);
             }else{
                 newCell = newRow.getCell(cellIndex);
+                int moveNum = time - i + 1;
                 if(newCell == null) {
+                    MergedResult mergedRegion = isMergedRegion(sheet, newRow.getRowNum(), cellIndex);
+                    if(mergedRegion.isMerged()){
+                        moveMergeCellY(sheet, mergedRegion, moveNum);
+                    }
                     newCell = newRow.createCell(cellIndex);
                 }else{
                     String value = newCell.toString();
                     if(!StringUtils.isEmpty(value)){
-                        int moveNum = time - i + 1;
                         moveY(sheet, value, rindex, cellIndex, moveNum);
                         break;
                     }
@@ -606,7 +698,7 @@ public class App {
             }
         }
 
-        CopySheetUtil.copyCell(cell, newCell, new HashMap<>());
+        copyCell(cell, newCell);
         copyCellStyle(cell, newCell);
         newRow.setHeight(row.getHeight());
         cell.setCellStyle(null);
@@ -697,7 +789,10 @@ public class App {
         int columnNum = mr.getColumnMergeNum();
         for (int i = 0; i < rowNum; i++) {
             Row row = sheet.getRow(firstRow + i);
-            rowWidths.add(row.getHeight());
+            if(row != null) {
+                short height = row.getHeight();
+                rowWidths.add(height);
+            }
         }
 
         for (int i = 1; i < rowNum + time; i++) {
@@ -732,16 +827,19 @@ public class App {
 
         int firstRowIndex = firstRow + time;
         row = sheet.getRow(firstRowIndex);
-        Cell newCell = row.getCell(firstColumn);
-        if(newCell == null){
-            newCell = row.createCell(firstColumn);
+        if(row != null) {
+            Cell newCell = row.getCell(firstColumn);
+            if (newCell == null) {
+                newCell = row.createCell(firstColumn);
+            }
+            newCell.setCellValue(value);
+            newCell.setCellStyle(cellStyle);
         }
-        newCell.setCellValue(value);
-        newCell.setCellStyle(cellStyle);
-
         for (int i = 0; i < rowWidths.size(); i++) {
             row = sheet.getRow(firstRowIndex + i);
-            row.setHeight(rowWidths.get(i));
+            if(row != null) {
+                row.setHeight(rowWidths.get(i));
+            }
         }
 
         CellRangeAddress cra = new CellRangeAddress(firstRowIndex, lastRow + time, firstColumn, lastColumn);
