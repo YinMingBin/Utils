@@ -315,12 +315,8 @@ public class App {
     }
 
     public void setCellValue(Cell cell, Object data){
-        if(data instanceof Byte || data instanceof Short || data instanceof Integer ){
-            cell.setCellValue((int) data);
-        }else if(data instanceof Long ){
-            cell.setCellValue((long) data);
-        }else if(data instanceof Float || data instanceof Double){
-            cell.setCellValue((double) data);
+        if(data instanceof Number){
+            cell.setCellValue(((Number) data).doubleValue());
         }else if(data instanceof Boolean){
             cell.setCellValue((boolean) data);
         }else if(data instanceof Date){
