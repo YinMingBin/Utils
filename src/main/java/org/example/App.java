@@ -7,6 +7,7 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -56,7 +57,7 @@ public class App {
             paramRecordMap.put("lsl", "lsl"+i);
             paramRecordMap.put("result", "result"+i);
             paramRecordMap.put("no", no);
-//            paramRecordMap.put("no2", no);
+            paramRecordMap.put("no2", no);
             paramRecords.add(paramRecordMap);
         }
 
@@ -64,7 +65,9 @@ public class App {
 
         App app = new App();
         app.excel(wb, datas);
-        FileOutputStream os = new FileOutputStream("D:/A临时/excel/test2.xlsx");
+        File file = new File("D:/A临时/excel/test2.xlsx");
+        file.createNewFile();
+        FileOutputStream os = new FileOutputStream(file);
         wb.write(os);
         os.flush();
         os.close();
@@ -628,32 +631,32 @@ public class App {
         cell.setCellValue("");
     }
 
-/**
- * 判断单元格类型（普通单元格，合并单元格）调用相关方法进行移动
- * 如果单元格是赋值单元格（${name}）,更新单元格信息CellInfo
- * @param sheet
- * @param value 单元格值
- * @param rowIndex 所在行
- * @param cellIndex 所在列
- * @param moveNum 移动列数
- */
-public void moveY(Sheet sheet, String value, int rowIndex, int cellIndex, int moveNum){
-    MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-    if (mergedRegion.isMerged()) {
-        moveMergeCellY(sheet, mergedRegion, moveNum);
-    } else {
-        moveCellY(sheet, rowIndex, cellIndex, moveNum);
-    }
-    if(value.indexOf(this.start) >= 0 && value.indexOf(this.finish) >= 0){
-        int initially = value.indexOf(this.start);
-        int ending = value.indexOf(this.finish);
-        String substring = value.substring(initially + this.start.length(), ending);
-        String[] split = substring.split("\\.");
-        int splitLen = split.length;
-        Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(split[0]);
-        CellInfo cellInfo = cellInfos.get(split[splitLen - 1]);
-        cellInfo.setRowIndex(cellInfo.getRowIndex() + moveNum);
-    }
+    /**
+     * 判断单元格类型（普通单元格，合并单元格）调用相关方法进行移动
+     * 如果单元格是赋值单元格（${name}）,更新单元格信息CellInfo
+     * @param sheet
+     * @param value 单元格值
+     * @param rowIndex 所在行
+     * @param cellIndex 所在列
+     * @param moveNum 移动列数
+     */
+    public void moveY(Sheet sheet, String value, int rowIndex, int cellIndex, int moveNum){
+        MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+        if (mergedRegion.isMerged()) {
+            moveMergeCellY(sheet, mergedRegion, moveNum);
+        } else {
+            moveCellY(sheet, rowIndex, cellIndex, moveNum);
+        }
+        if(value.indexOf(this.start) >= 0 && value.indexOf(this.finish) >= 0){
+            int initially = value.indexOf(this.start);
+            int ending = value.indexOf(this.finish);
+            String substring = value.substring(initially + this.start.length(), ending);
+            String[] split = substring.split("\\.");
+            int splitLen = split.length;
+            Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(split[0]);
+            CellInfo cellInfo = cellInfos.get(split[splitLen - 1]);
+            cellInfo.setRowIndex(cellInfo.getRowIndex() + moveNum);
+        }
 }
 
     /**
