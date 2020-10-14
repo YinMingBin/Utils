@@ -259,22 +259,11 @@ public class App {
      * @param datas 数据
      */
     public void setAllArray(Sheet sheet, Map<String, Object> datas){
-        String[] priority = (String[]) datas.get("PRIORITY");
-        if (priority != null){
-            for (String key : priority) {
-                Object o = datas.get(key);
-                if(o != null) {
-                    this.inUse = this.arrayCellInfo.get(key);
-                    eachTransferStop(key, o, sheet);
-                }
-            }
-        }else {
-            this.arrayCellInfo.forEach((key, value) -> {
-                Object o = datas.get(key);
-                this.inUse = value;
-                eachTransferStop(key, o, sheet);
-            });
-        }
+        arrayCellInfo.forEach((key, value) -> {
+            Object o = datas.get(key);
+            this.inUse = value;
+            eachTransferStop(key, o, sheet);
+        });
     }
 
     /**
@@ -900,36 +889,6 @@ public class App {
                 }
             }
         }
-
-//        for (int i = 0; i < rowNum; i++) {
-//            int rowIndex = firstRow + i;
-//            Row row = sheet.getRow(rowIndex);
-//            if(row == null){
-//                sheet.createRow(rowIndex);
-//                continue;
-//            }
-//            for (int j = 1; j < columnNum + time; j++) {
-//                int cellIndex = lastColumn + j;
-//                Cell cell = row.getCell(cellIndex);
-//                int moveNum = time - j + 1;
-//                boolean isCxit = false;
-//                moveYCellSite(rowIndex, cellIndex, moveNum);
-//                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-//                if(mergedRegion.isMerged()){
-//                    moveMergeCellY(sheet, mergedRegion, moveNum);
-//                    isCxit = true;
-//                }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
-//                    moveCellY(sheet, rowIndex, cellIndex, moveNum);
-//                    break;
-//                }
-//                if(cell == null){
-//                    row.createCell(cellIndex);
-//                    if(isCxit){
-//                        break;
-//                    }
-//                }
-//            }
-//        }
 
         splitMergedRegion(sheet, firstRow, firstColumn);
 
