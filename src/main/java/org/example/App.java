@@ -16,11 +16,13 @@ import java.util.*;
 
 /**
  * Hello world!
+ * @author Administrator
  */
 public class App {
     private Map<String, CellInfo> cellInfo = new HashMap<>();
     private Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
     private Map<String, CellInfo> inUse = null;
+    private Map<Integer, String[]> siteName = new HashMap<>();
     private final String start = "${";
     private final String finish = "}";
     private final String x = "X-";
@@ -34,11 +36,11 @@ public class App {
         Map<String, Object> datas = new HashMap<>();
         datas.put("productNo", "001");
         datas.put("iqcNo", "002");
-        SimpleDateFormat sdf = new SimpleDateFormat("YYYY-MM-DD HH:mm:ss");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         datas.put("createTime", sdf.format(new Date()));
         datas.put("inspectorName", "尹明彬");
         List<Map<String, Object>> paramRecords = new ArrayList<>();
-
+        List<Map<String, Object>> paramRecords2 = new ArrayList<>();
         for (int i = 0; i < 20; i++) {
 
             List<Integer> no = new ArrayList<>();
@@ -47,6 +49,7 @@ public class App {
             }
 
             Map<String, Object> paramRecordMap = new HashMap();
+            Map<String, Object> paramRecordMap2 = new HashMap();
             paramRecordMap.put("inspectionTypeName", "iTN"+i);
             paramRecordMap.put("inspectionName", "iN"+i);
             paramRecordMap.put("chkDevName", "cDN"+i);
@@ -57,11 +60,17 @@ public class App {
             paramRecordMap.put("lsl", "lsl"+i);
             paramRecordMap.put("result", "result"+i);
             paramRecordMap.put("no", no);
-            paramRecordMap.put("no2", no);
+            paramRecordMap2.put("no2", no);
+            String[] priority = {"inspectionTypeName","inspectionName","chkDevName","prodUnit","standard","sl","usl","lsl","result","no","no2",};
+            paramRecordMap.put("PRIORITY", priority);
             paramRecords.add(paramRecordMap);
+            paramRecords2.add(paramRecordMap2);
         }
 
         datas.put("X-paramRecords", paramRecords);
+//        datas.put("X-paramRecords2", paramRecords2);
+        String[] priority = {"X-paramRecords","X-paramRecords2"};
+        datas.put("PRIORITY", priority);
 
         App app = new App();
         app.excel(wb, datas);
@@ -152,6 +161,7 @@ public class App {
     }
 
     public void copyCell(Cell cell, Cell newCell){
+        if(cell == null || newCell == null){return;}
         CellType cellTypeEnum = cell.getCellTypeEnum();
         if(cellTypeEnum == CellType.STRING){
             newCell.setCellValue(cell.getStringCellValue());
@@ -211,6 +221,7 @@ public class App {
                                         cellInfos = new HashMap<>();
                                     }
                                     cellInfos.put(str, cellInfo);
+                                    this.siteName.put((i * 100 + j), new String[]{s,str});
                                     this.arrayCellInfo.put(s, cellInfos);
                                 } else {
                                     this.cellInfo.put(s, cellInfo);
@@ -248,11 +259,22 @@ public class App {
      * @param datas 数据
      */
     public void setAllArray(Sheet sheet, Map<String, Object> datas){
-        arrayCellInfo.forEach((key, value) -> {
-            Object o = datas.get(key);
-            this.inUse = value;
-            eachTransferStop(key, o, sheet);
-        });
+        String[] priority = (String[]) datas.get("PRIORITY");
+        if (priority != null){
+            for (String key : priority) {
+                Object o = datas.get(key);
+                if(o != null) {
+                    this.inUse = this.arrayCellInfo.get(key);
+                    eachTransferStop(key, o, sheet);
+                }
+            }
+        }else {
+            this.arrayCellInfo.forEach((key, value) -> {
+                Object o = datas.get(key);
+                this.inUse = value;
+                eachTransferStop(key, o, sheet);
+            });
+        }
     }
 
     /**
@@ -263,27 +285,30 @@ public class App {
      * @param cellIndex 所在列
      * @return
      */
+    public Cell setCellValueX(Object data, Sheet sheet, int rowIndex, int cellIndex, int moveNum){
+        Row row = sheet.getRow(rowIndex);
+        Cell cell ;
+        if(row == null){
+            row = sheet.createRow(rowIndex);
+            cell = row.createCell(rowIndex);
+        } else {
+            cell = row.getCell(cellIndex);
+            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+            if (mergedRegion.isMerged()) {
+                moveMergeCellX(sheet, mergedRegion, moveNum);
+            } else if(cell != null && !StringUtils.isEmpty(cell.toString())){
+                moveCellX(sheet, rowIndex, cellIndex, moveNum);
+            }
+            if (cell == null) {
+                cell = row.createCell(cellIndex);
+            }
+        }
+        setCellValue(cell, data);
+        return cell;
+    }
+
     public Cell setCellValueX(Object data, Sheet sheet, int rowIndex, int cellIndex){
-        Row row = sheet.getRow(rowIndex);
-        if(row == null){
-            row = sheet.createRow(rowIndex);
-        }
-        Cell cell = row.getCell(cellIndex);
-        if(cell == null){
-            cell = row.createCell(cellIndex);
-        }else{
-            String value = cell.toString();
-            if(!StringUtils.isEmpty(value)){
-                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-                if(mergedRegion.isMerged()){
-                    moveMergeCellX(sheet, mergedRegion, 1);
-                }else {
-                    moveCellX(sheet, rowIndex, cellIndex, 1);
-                }
-            }
-        }
-        setCellValue(cell, data);
-        return cell;
+        return setCellValueX(data, sheet, rowIndex, cellIndex, 1);
     }
 
     /**
@@ -294,27 +319,30 @@ public class App {
      * @param cellIndex 所在列
      * @return
      */
-    public Cell setCellValueY(Object data, Sheet sheet, int rowIndex, int cellIndex){
+    public Cell setCellValueY(Object data, Sheet sheet, int rowIndex, int cellIndex, int moveNum){
         Row row = sheet.getRow(rowIndex);
+        Cell cell ;
         if(row == null){
             row = sheet.createRow(rowIndex);
-        }
-        Cell cell = row.getCell(cellIndex);
-        if(cell == null){
             cell = row.createCell(cellIndex);
-        }else{
-            String value = cell.toString();
-            if(!StringUtils.isEmpty(value)){
-                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-                if(mergedRegion.isMerged()){
-                    moveMergeCellY(sheet, mergedRegion, 1);
-                }else {
-                    moveCellY(sheet, rowIndex, cellIndex, 1);
-                }
+        }else {
+            cell = row.getCell(cellIndex);
+            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+            if(mergedRegion.isMerged()){
+                moveMergeCellY(sheet, mergedRegion, moveNum);
+            } else if(cell != null && !StringUtils.isEmpty(cell.toString())){
+                moveCellY(sheet, rowIndex, cellIndex, moveNum);
+            }
+            if (cell == null) {
+                cell = row.createCell(cellIndex);
             }
         }
         setCellValue(cell, data);
         return cell;
+    }
+
+    public Cell setCellValueY(Object data, Sheet sheet, int rowIndex, int cellIndex){
+        return setCellValueY(data, sheet, rowIndex, cellIndex, 1);
     }
 
     public void setCellValue(Cell cell, Object data){
@@ -379,28 +407,42 @@ public class App {
      */
     public void setXMapData(Map<String, Object> datas, Sheet sheet, int index){
         int i = 0;
-        for (Map.Entry<String, Object> data : datas.entrySet()){
-            String key = data.getKey();
-            Object value = data.getValue();
-            CellInfo cellInfo = this.inUse.get(key);
-            if(cellInfo != null) {
-                Integer rowIndex = cellInfo.getRowIndex();
-                Integer cellIndex = cellInfo.getCellIndex() + (index > -9999 ? index : i);
-                if (isNoArray(value)) {
-                    String initially = cellInfo.getInitially();
-                    String ending = cellInfo.getEnding();
-                    if (!(StringUtils.isEmpty(initially) && StringUtils.isEmpty(ending))) {
-                        value = initially + value + ending;
-                    }
-                    Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex);
-                    setCellStyle(Cell, cellInfo.getCellStyle());
-                    sheet.setColumnWidth(cellIndex, cellInfo.getColumnWidth());
-                } else {
-                    setCellValueX("", sheet, rowIndex, cellIndex);
-                    int size = eachTransferStop(key, value, sheet, rowIndex, cellIndex, index);
-                    if(key.indexOf(this.x) >= 0){
-                        cellInfo.setCellIndex( cellInfo.getCellIndex() + size - 1);
-                    }
+        String[] priority = (String[]) datas.get("PRIORITY");
+        if(priority != null){
+            for (String key : priority) {
+                Object data = datas.get(key);
+                if(data != null) {
+                    mapDataX(sheet, key, data, (index > -9999 ? index : i));
+                }
+            }
+        }else {
+            for (Map.Entry<String, Object> data : datas.entrySet()) {
+                mapDataX(sheet, data.getKey(), data.getValue(), (index > -9999 ? index : i));
+            }
+        }
+    }
+
+    public void mapDataX(Sheet sheet, String key, Object value, int index){
+        CellInfo cellInfo = this.inUse.get(key);
+        if(cellInfo != null) {
+            Integer rowIndex = cellInfo.getRowIndex();
+            Integer cellIndex = cellInfo.getCellIndex() + index;
+            if (isNoArray(value)) {
+                if(index!=0){
+                    moveXCellSite(rowIndex, cellIndex, 1);
+                }
+                String initially = cellInfo.getInitially();
+                String ending = cellInfo.getEnding();
+                if (!StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending)) {
+                    value = initially + value + ending;
+                }
+                Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex);
+                setCellStyle(Cell, cellInfo.getCellStyle());
+                sheet.setColumnWidth(cellIndex, cellInfo.getColumnWidth());
+            } else {
+                int size = eachTransferStop(key, value, sheet, rowIndex, cellIndex, index);
+                if(key.indexOf(this.x) >= 0){
+                    cellInfo.setCellIndex( cellInfo.getCellIndex() + size - 1);
                 }
             }
         }
@@ -414,29 +456,42 @@ public class App {
      */
     public void setYMapData(Map<String, Object> datas, Sheet sheet, int index){
         int i = 0;
-        for (Map.Entry<String, Object> data : datas.entrySet()){
-            String key = data.getKey();
-            Object value = data.getValue();
-            CellInfo cellInfo = this.inUse.get(key);
-            if(cellInfo != null) {
-                Integer rowIndex = cellInfo.getRowIndex() + (index > -9999 ? index : i);
-                Integer cellIndex = cellInfo.getCellIndex();
-                if (isNoArray(value)) {
-                    String initially = cellInfo.getInitially();
-                    String ending = cellInfo.getEnding();
-                    if (!(StringUtils.isEmpty(initially) && StringUtils.isEmpty(ending))) {
-                        value = initially + value + ending;
-                    }
-                    Cell Cell = setCellValueY(value, sheet, rowIndex, cellIndex);
-                    setCellStyle(Cell, cellInfo.getCellStyle());
-                    Row row = sheet.getRow(rowIndex);
-                    row.setHeight(cellInfo.getRowHeigth());
-                } else {
-                    setCellValueY("", sheet, rowIndex, cellIndex);
-                    int size = eachTransferStop(key, value, sheet, rowIndex, cellIndex, index);
-                    if(!(key.indexOf(this.x) >= 0)){
-                        cellInfo.setRowIndex( cellInfo.getRowIndex() + size - 1);
-                    }
+        String[] priority = (String[]) datas.get("PRIORITY");
+        if(priority != null){
+            for (String key : priority) {
+                Object data = datas.get(key);
+                mapDataY(sheet, key, data, (index > -9999 ? index : i));
+                datas.remove(key);
+            }
+        }else {
+            for (Map.Entry<String, Object> data : datas.entrySet()) {
+                mapDataY(sheet, data.getKey(), data.getValue(), (index > -9999 ? index : i));
+            }
+        }
+    }
+
+    public void mapDataY(Sheet sheet, String key, Object value, int index){
+        CellInfo cellInfo = this.inUse.get(key);
+        if(cellInfo != null) {
+            Integer rowIndex = cellInfo.getRowIndex() + index;
+            Integer cellIndex = cellInfo.getCellIndex();
+            if (isNoArray(value)) {
+                if(index!=0){
+                    moveYCellSite(rowIndex, cellIndex, 1);
+                }
+                String initially = cellInfo.getInitially();
+                String ending = cellInfo.getEnding();
+                if (!StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending)) {
+                    value = initially + value + ending;
+                }
+                Cell Cell = setCellValueY(value, sheet, rowIndex, cellIndex);
+                setCellStyle(Cell, cellInfo.getCellStyle());
+                Row row = sheet.getRow(rowIndex);
+                row.setHeight(cellInfo.getRowHeigth());
+            } else {
+                int size = eachTransferStop(key, value, sheet, rowIndex, cellIndex, index);
+                if(!(key.indexOf(this.x) >= 0)){
+                    cellInfo.setRowIndex( cellInfo.getRowIndex() + size - 1);
                 }
             }
         }
@@ -451,18 +506,28 @@ public class App {
      * @param cellIndex 初始所在列
      */
     public void setXListData(String name, List<Object> datas, Sheet sheet, int rowIndex, int cellIndex){
-        for (int i = 0; i < datas.size(); i++) {
+        CellInfo cellInfo = this.inUse.get(name);
+        String initially = null;
+        String ending = null;
+        if(cellInfo != null){
+            initially = cellInfo.getInitially();
+            ending = cellInfo.getEnding();
+        }
+        boolean isAdTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
+        int dataSize = datas.size();
+        for (int i = 0; i < dataSize; i++) {
             Object value = datas.get(i);
+            cellIndex += i;
             if(isNoArray(value)){
-                CellInfo cellInfo = this.inUse.get(name);
-                String initially = cellInfo.getInitially();
-                String ending = cellInfo.getEnding();
-                if(!(StringUtils.isEmpty(initially) && StringUtils.isEmpty(ending))) {
+                if(i!=0){
+                    moveXCellSite(rowIndex, cellIndex, 1);
+                }
+                if(isAdTo) {
                     value = initially + value + ending;
                 }
-                Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex + i);
+                Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex, dataSize);
                 setCellStyle(Cell, cellInfo.getCellStyle());
-                sheet.setColumnWidth(cellIndex + 1, cellInfo.getColumnWidth());
+                sheet.setColumnWidth(cellIndex, cellInfo.getColumnWidth());
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndex, i);
                 if(name.indexOf(this.x) >= 0){
@@ -481,18 +546,27 @@ public class App {
      * @param cellIndex 初始所在列
      */
     public void setYListData(String name, List<Object> datas, Sheet sheet, int rowIndex, int cellIndex){
-        for (int i = 0; i < datas.size(); i++) {
+        CellInfo cellInfo = this.inUse.get(name);
+        String initially = null;
+        String ending = null;
+        if(cellInfo != null){
+            initially = cellInfo.getInitially();
+            ending = cellInfo.getEnding();
+        }
+        boolean isAddTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
+        int dataSize = datas.size();
+        for (int i = 0; i < dataSize; i++, rowIndex++) {
             Object value = datas.get(i);
             if(isNoArray(value)){
-                CellInfo cellInfo = this.inUse.get(name);
-                String initially = cellInfo.getInitially();
-                String ending = cellInfo.getEnding();
-                if(!(StringUtils.isEmpty(initially) && StringUtils.isEmpty(ending))) {
+                if(i!=0){
+                    moveXCellSite(rowIndex, cellIndex, 1);
+                }
+                if(isAddTo) {
                     value = initially + value + ending;
                 }
-                Cell Cell = setCellValueY(value, sheet, rowIndex + i, cellIndex);
+                Cell Cell = setCellValueY(value, sheet, rowIndex, cellIndex, dataSize);
                 setCellStyle(Cell, cellInfo.getCellStyle());
-                Row row = sheet.getRow(rowIndex + i);
+                Row row = sheet.getRow(rowIndex);
                 row.setHeight(cellInfo.getRowHeigth());
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndex, i);
@@ -512,16 +586,25 @@ public class App {
      * @param cellIndex 初始所在列
      */
     public void setXArrayData(String name, Object[] datas, Sheet sheet, int rowIndex, int cellIndex){
-        for (int i = 0; i < datas.length; i++) {
+        CellInfo cellInfo = this.inUse.get(name);
+        String initially = null;
+        String ending = null;
+        if(cellInfo != null){
+            initially = cellInfo.getInitially();
+            ending = cellInfo.getEnding();
+        }
+        boolean isAddTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
+        int dataLen = datas.length;
+        for (int i = 0; i < dataLen; i++, cellIndex++) {
             Object value = datas[i];
             if(isNoArray(value)){
-                CellInfo cellInfo = this.inUse.get(name);
-                String initially = cellInfo.getInitially();
-                String ending = cellInfo.getEnding();
-                if(!(StringUtils.isEmpty(initially) && StringUtils.isEmpty(ending))) {
+                if(i!=0){
+                    moveXCellSite(rowIndex, cellIndex, 1);
+                }
+                if(isAddTo) {
                     value = initially + value + ending;
                 }
-                Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex + i);
+                Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex, dataLen);
                 setCellStyle(Cell, cellInfo.getCellStyle());
                 cellInfo.setColumnWidth(cellInfo.getColumnWidth());
             }else {
@@ -542,18 +625,27 @@ public class App {
      * @param cellIndex 初始所在列
      */
     public void setYArrayData(String name, Object[] datas, Sheet sheet, int rowIndex, int cellIndex){
-        for (int i = 0; i < datas.length; i++) {
+        CellInfo cellInfo = this.inUse.get(name);
+        String initially = null;
+        String ending = null;
+        if(cellInfo != null){
+            initially = cellInfo.getInitially();
+            ending = cellInfo.getEnding();
+        }
+        boolean isAddTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
+        int dataLen = datas.length;
+        for (int i = 0; i < dataLen; i++, rowIndex++) {
             Object value = datas[i];
             if(isNoArray(value)){
-                CellInfo cellInfo = this.inUse.get(name);
-                String initially = cellInfo.getInitially();
-                String ending = cellInfo.getEnding();
-                if(!(StringUtils.isEmpty(initially) && StringUtils.isEmpty(ending))) {
+                if(i!=0){
+                    moveXCellSite(rowIndex, cellIndex, 1);
+                }
+                if(isAddTo) {
                     value = initially + value + ending;
                 }
-                Cell Cell = setCellValueY(value, sheet, rowIndex + i, cellIndex);
+                Cell Cell = setCellValueY(value, sheet, rowIndex, cellIndex, dataLen);
                 setCellStyle(Cell, cellInfo.getCellStyle());
-                Row row = sheet.getRow(rowIndex + i);
+                Row row = sheet.getRow(rowIndex);
                 row.setHeight(cellInfo.getRowHeigth());
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndex, i);
@@ -564,32 +656,19 @@ public class App {
         }
     }
 
-    /**
-     * 判断单元格类型（普通单元格，合并单元格）调用相关方法进行移动
-     * 如果单元格是赋值单元格（${name}）,更新单元格信息CellInfo
-     * @param sheet
-     * @param value 单元格值
-     * @param rowIndex 所在行
-     * @param cellIndex 所在列
-     * @param moveNum 移动列数
-     */
-    public void moveX(Sheet sheet, String value, int rowIndex, int cellIndex, int moveNum){
-        MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-        if (mergedRegion.isMerged()) {
-            moveMergeCellX(sheet, mergedRegion, moveNum);
-        } else {
-            moveCellX(sheet, rowIndex, cellIndex, moveNum);
+    public boolean moveXCellSite(int rowIndex, int cellIndex, int moveNum){
+        int site = rowIndex * 100 + cellIndex;
+        String[] name = this.siteName.get(site);
+        if(!StringUtils.isEmpty(name)){
+            Map<String, CellInfo> stringCellInfoMap = this.arrayCellInfo.get(name[0]);
+            CellInfo cellInfo = stringCellInfoMap.get(name[1]);
+            int cellSite = cellIndex + moveNum;
+            cellInfo.setCellIndex(cellSite);
+            this.siteName.remove(site);
+            this.siteName.put((rowIndex * 100 + cellSite), name);
+            return true;
         }
-        if(value.indexOf(this.start) >= 0 && value.indexOf(this.finish) >= 0){
-            int initially = value.indexOf(this.start);
-            int ending = value.indexOf(this.finish);
-            String substring = value.substring(initially + this.start.length(), ending);
-            String[] split = substring.split("\\.");
-            int splitLen = split.length;
-            Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(split[0]);
-            CellInfo cellInfo = cellInfos.get(split[splitLen - 1]);
-            cellInfo.setCellIndex(cellInfo.getCellIndex() + moveNum);
-        }
+        return false;
     }
 
     /**
@@ -603,24 +682,24 @@ public class App {
         Row row = sheet.getRow(rowIndex);
         Cell cell = row.getCell(cellIndex);
         Cell newCell = null;
-        boolean isPlus = time > 0;
-        for (int i = (isPlus ? 1 : -1); (isPlus ? i <= time : i >= time); i+= (isPlus ? 1 : -1)) {
+        for (int i = 1; i <= time; i++) {
             int cindex = cellIndex + i;
             newCell = row.getCell(cindex);
             int moveNum = time - i + 1;
-            if(newCell != null ){
-                String value = newCell.toString();
-                if(!StringUtils.isEmpty(value)){
-                    moveX(sheet, value, rowIndex, cindex, moveNum);
+            boolean isEnd = false;
+            moveXCellSite(rowIndex, cindex, moveNum);
+            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cindex);
+            if(mergedRegion.isMerged()){
+                moveMergeCellX(sheet, mergedRegion, moveNum);
+                isEnd = true;
+            }else if(newCell != null && !StringUtils.isEmpty(newCell.toString())){
+                moveCellX(sheet, rowIndex, cindex, moveNum);
+                break;
+            }
+            if(newCell == null){
+                newCell = row.createCell(cindex);
+                if(isEnd){
                     break;
-                }
-            }else {
-                if(newCell == null){
-                    MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-                    if(mergedRegion.isMerged()){
-                        moveMergeCellY(sheet, mergedRegion, moveNum);
-                    }
-                    newCell = row.createCell(cellIndex + 1);
                 }
             }
         }
@@ -631,33 +710,20 @@ public class App {
         cell.setCellValue("");
     }
 
-    /**
-     * 判断单元格类型（普通单元格，合并单元格）调用相关方法进行移动
-     * 如果单元格是赋值单元格（${name}）,更新单元格信息CellInfo
-     * @param sheet
-     * @param value 单元格值
-     * @param rowIndex 所在行
-     * @param cellIndex 所在列
-     * @param moveNum 移动列数
-     */
-    public void moveY(Sheet sheet, String value, int rowIndex, int cellIndex, int moveNum){
-        MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-        if (mergedRegion.isMerged()) {
-            moveMergeCellY(sheet, mergedRegion, moveNum);
-        } else {
-            moveCellY(sheet, rowIndex, cellIndex, moveNum);
+    public boolean moveYCellSite(int rowIndex, int cellIndex,int moveNum){
+        int site = rowIndex * 100 + cellIndex;
+        String[] name = this.siteName.get(site);
+        if(!StringUtils.isEmpty(name)){
+            Map<String, CellInfo> stringCellInfoMap = this.arrayCellInfo.get(name[0]);
+            CellInfo cellInfo = stringCellInfoMap.get(name[1]);
+            int rowSite = rowIndex + moveNum;
+            cellInfo.setRowIndex(rowSite);
+            this.siteName.remove(site);
+            this.siteName.put((rowSite * 100 + cellIndex), name);
+            return true;
         }
-        if(value.indexOf(this.start) >= 0 && value.indexOf(this.finish) >= 0){
-            int initially = value.indexOf(this.start);
-            int ending = value.indexOf(this.finish);
-            String substring = value.substring(initially + this.start.length(), ending);
-            String[] split = substring.split("\\.");
-            int splitLen = split.length;
-            Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(split[0]);
-            CellInfo cellInfo = cellInfos.get(split[splitLen - 1]);
-            cellInfo.setRowIndex(cellInfo.getRowIndex() + moveNum);
-        }
-}
+        return false;
+    }
 
     /**
      * 上下移动单元格
@@ -671,8 +737,7 @@ public class App {
         Row newRow = null;
         Cell cell = row.getCell(cellIndex);
         Cell newCell = null;
-        boolean isPlus = time > 0;
-        for (int i = (isPlus ? 1 : -1); (isPlus ? i <= time : i >= time); i+= (isPlus ? 1 : -1)) {
+        for (int i = 1; i <= time ; i++) {
             int rindex = rowIndex + i;
             newRow = sheet.getRow(rindex);
             if(newRow == null){
@@ -681,16 +746,19 @@ public class App {
             }else{
                 newCell = newRow.getCell(cellIndex);
                 int moveNum = time - i + 1;
-                if(newCell == null) {
-                    MergedResult mergedRegion = isMergedRegion(sheet, newRow.getRowNum(), cellIndex);
-                    if(mergedRegion.isMerged()){
-                        moveMergeCellY(sheet, mergedRegion, moveNum);
-                    }
-                    newCell = newRow.createCell(cellIndex);
-                }else{
-                    String value = newCell.toString();
-                    if(!StringUtils.isEmpty(value)){
-                        moveY(sheet, value, rindex, cellIndex, moveNum);
+                boolean isEnd = false;
+                moveYCellSite(rindex, cellIndex, moveNum);
+                MergedResult mergedRegion = isMergedRegion(sheet, rindex, cellIndex);
+                if(mergedRegion.isMerged()){
+                    moveMergeCellY(sheet, mergedRegion, moveNum);
+                    isEnd = true;
+                }else if(newCell != null && !StringUtils.isEmpty(newCell.toString())){
+                    moveCellY(sheet, rindex, cellIndex, moveNum);
+                    break;
+                }
+                if(newCell == null){
+                    newCell = row.createCell(cellIndex);
+                    if(isEnd){
                         break;
                     }
                 }
@@ -728,14 +796,23 @@ public class App {
         for (int i = 0; i < rowNum; i++) {
             int rowIndex = firstRow + i;
             Row row = sheet.getRow(rowIndex);
-            for (int j = 1; j < columnNum + time; j++) {
+            for (int j = 1; j <= time; j++) {
                 int cellIndex = lastColumn + j;
                 Cell cell = row.getCell(cellIndex);
-                if (cell != null) {
-                    String value = cell.toString();
-                    if (!StringUtils.isEmpty(value)) {
-                        int moveNum = time - j + 1;
-                        moveX(sheet, value, rowIndex, cellIndex, moveNum);
+                int moveNum = time - j + 1;
+                boolean isEnd = false;
+                moveXCellSite(rowIndex, cellIndex, moveNum);
+                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+                if(mergedRegion.isMerged()){
+                    moveMergeCellX(sheet, mergedRegion, moveNum);
+                    isEnd = true;
+                }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
+                    moveCellX(sheet, rowIndex, cellIndex, moveNum);
+                    break;
+                }
+                if(cell == null){
+                    row.createCell(cellIndex);
+                    if(isEnd){
                         break;
                     }
                 }
@@ -794,7 +871,7 @@ public class App {
             }
         }
 
-        for (int i = 1; i < rowNum + time; i++) {
+        for(int i = 1; i <= time; i++){
             int rowIndex = lastRow + i;
             Row row = sheet.getRow(rowIndex);
             if(row == null){
@@ -804,16 +881,55 @@ public class App {
             for (int j = 0; j < columnNum; j++) {
                 int cellIndex = firstColumn + j;
                 Cell cell = row.getCell(cellIndex);
-                if (cell != null) {
-                    String value = cell.toString();
-                    if (!StringUtils.isEmpty(value)) {
-                        int moveNum = time - j + 1;
-                        moveX(sheet, value, rowIndex, cellIndex, moveNum);
+                int moveNum = time - i + 1;
+                boolean isEnd = false;
+                moveYCellSite(rowIndex, cellIndex, moveNum);
+                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+                if(mergedRegion.isMerged()){
+                    moveMergeCellY(sheet, mergedRegion, moveNum);
+                    isEnd = true;
+                }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
+                    moveCellY(sheet, rowIndex, cellIndex, moveNum);
+                    break;
+                }
+                if(cell == null){
+                    row.createCell(cellIndex);
+                    if(isEnd){
                         break;
                     }
                 }
             }
         }
+
+//        for (int i = 0; i < rowNum; i++) {
+//            int rowIndex = firstRow + i;
+//            Row row = sheet.getRow(rowIndex);
+//            if(row == null){
+//                sheet.createRow(rowIndex);
+//                continue;
+//            }
+//            for (int j = 1; j < columnNum + time; j++) {
+//                int cellIndex = lastColumn + j;
+//                Cell cell = row.getCell(cellIndex);
+//                int moveNum = time - j + 1;
+//                boolean isCxit = false;
+//                moveYCellSite(rowIndex, cellIndex, moveNum);
+//                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+//                if(mergedRegion.isMerged()){
+//                    moveMergeCellY(sheet, mergedRegion, moveNum);
+//                    isCxit = true;
+//                }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
+//                    moveCellY(sheet, rowIndex, cellIndex, moveNum);
+//                    break;
+//                }
+//                if(cell == null){
+//                    row.createCell(cellIndex);
+//                    if(isCxit){
+//                        break;
+//                    }
+//                }
+//            }
+//        }
 
         splitMergedRegion(sheet, firstRow, firstColumn);
 
