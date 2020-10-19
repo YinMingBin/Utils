@@ -13,6 +13,8 @@ import org.apache.poi.ss.usermodel.CellStyle;
 public class CellInfo {
     /** 样式 */
     CellStyle cellStyle;
+    /** 合并单元格 */
+    MergedResult mergedResult;
     /** 行高 */
     short rowHeigth;
     /** 列宽 */
@@ -39,7 +41,7 @@ public class CellInfo {
     }
 
     public CellInfo(CellStyle cellStyle, short rowHeigth, int columnWidth, String initially,
-                    String name, String ending, Integer rowIndex, Integer cellIndex) {
+                    String name, String ending, Integer rowIndex, Integer cellIndex, MergedResult mergedResult) {
         this.cellStyle = cellStyle;
         this.rowHeigth = rowHeigth;
         this.columnWidth = columnWidth;
@@ -48,5 +50,6 @@ public class CellInfo {
         this.ending = ending;
         this.rowIndex = rowIndex;
         this.cellIndex = cellIndex;
+        this.mergedResult = mergedResult;
     }
 }
