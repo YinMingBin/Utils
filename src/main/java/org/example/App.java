@@ -1,5 +1,6 @@
 package org.example;
 
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
@@ -25,13 +26,10 @@ public class App {
     private Map<Integer, String[]> siteName = new HashMap<>();
     private static final String ORDER = "PRIORITY";
     private final String x = "X-";
+    private String suffix = "xls";
 
     public static void main(String[] args) throws IOException {
-        ClassPathResource resource = new ClassPathResource("test.xlsx");
-        InputStream is = resource.getInputStream();
-//        POIFSFileSystem ps = new POIFSFileSystem(is);
-//        Workbook wb = new HSSFWorkbook(is);
-        Workbook wb = new XSSFWorkbook(is);
+
         Map<String, Object> datas = new HashMap<>(10);
         datas.put("productNo", "001");
         datas.put("iqcNo", "002");
@@ -73,7 +71,7 @@ public class App {
         datas.put(ORDER, priority);
 
         App app = new App();
-        app.excel(wb, datas);
+        Workbook wb = app.excel("test.xlsx", datas);
         File file = new File("D:/A临时/excel/test2.xlsx");
         file.createNewFile();
         FileOutputStream os = new FileOutputStream(file);
@@ -82,7 +80,13 @@ public class App {
         os.close();
     }
 
-    public void excel(Workbook wb, Map<String, Object> datas) {
+    public Workbook excel(String fileName, Map<String, Object> datas) throws IOException {
+        if(!fileName.endsWith(".xlsx")&&!fileName.endsWith(".xls")){return null;}
+        ClassPathResource resource = new ClassPathResource(fileName);
+        this.suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
+        InputStream is = resource.getInputStream();
+        Workbook wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
+//        POIFSFileSystem ps = new POIFSFileSystem(is);
         Sheet sheetAt = wb.getSheetAt(0);
         initialize(sheetAt, datas);
         setBasicData(sheetAt, datas);
@@ -92,6 +96,7 @@ public class App {
 
         setAllArray(sheet, datas);
 
+        return wb;
     }
 
     public void copySheet(Sheet sheet, Sheet newSheet){
@@ -128,6 +133,12 @@ public class App {
         for (int i = 0; i < maxColumnNum; i++) {
             newSheet.setColumnWidth(i, sheet.getColumnWidth(i));
         }
+
+//        if("xlsx".equals(this.suffix)){
+//            List<POIXMLDocumentPart> relations = ((XSSFSheet) sheet).getRelations();
+//        }else{
+//            List<HSSFShape> children = ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
+//        }
 
     }
 
