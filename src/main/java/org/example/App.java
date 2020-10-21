@@ -1,19 +1,17 @@
 package org.example;
 
-import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.util.CellRangeAddress;
-import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.apache.poi.xssf.usermodel.*;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Hello world!
@@ -24,55 +22,65 @@ public class App {
     private Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
     private Map<String, CellInfo> inUse = new HashMap<>();
     private Map<Integer, String[]> siteName = new HashMap<>();
+    private Workbook wb = null;
     private static final String ORDER = "PRIORITY";
     private final String x = "X-";
-    private String suffix = "xls";
+    private String suffix = "";
 
     public static void main(String[] args) throws IOException {
 
         Map<String, Object> datas = new HashMap<>(10);
-        datas.put("productNo", "001");
-        datas.put("iqcNo", "002");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        datas.put("createTime", sdf.format(new Date()));
-        datas.put("inspectorName", "尹明彬");
-        List<Map<String, Object>> paramRecords = new ArrayList<>();
-        List<Map<String, Object>> paramRecords2 = new ArrayList<>();
-        for (int i = 0; i < 10; i++) {
-
-            List<Integer> no = new ArrayList<>();
-            for(int j = i/2; j < 10; j++){
-                no.add(j);
-            }
-
-            Map<String, Object> paramRecordMap = new HashMap<>();
-            Map<String, Object> paramRecordMap2 = new HashMap<>();
-            paramRecordMap.put("inspectionTypeName", "iTN"+i);
-            paramRecordMap.put("inspectionName", "iN"+i);
-            paramRecordMap.put("chkDevName", "cDN"+i);
-            paramRecordMap.put("prodUnit", "pU"+i);
-            paramRecordMap.put("standard", "standard"+i);
-            paramRecordMap.put("sl", "sl"+i);
-            paramRecordMap.put("usl", "usl"+i);
-            paramRecordMap.put("lsl", "lsl"+i);
-            paramRecordMap.put("result", "result"+i);
-            paramRecordMap.put("no", no);
-            paramRecordMap.put("no2", no);
-            paramRecordMap2.put("no2", no);
-            String[] priority = {"inspectionTypeName","inspectionName","chkDevName","prodUnit","standard","sl","usl","lsl","result","no","no2",};
-            paramRecordMap.put("PRIORITY", priority);
-            paramRecords.add(paramRecordMap);
-            paramRecords2.add(paramRecordMap2);
+        InputStream is = new FileInputStream(new File("C:/Users/Administrator/Desktop/阿尔塞斯.jpg"));
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[1024];
+        int n = 0;
+        while (-1 != (n = is.read(buffer))) {
+            output.write(buffer, 0, n);
         }
+        datas.put("logo", new Image(output.toByteArray()));
+        datas.put("companyName", "深圳市矢分科技有限公司");
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        datas.put("reportDate", sdf.format(new Date()));
 
-        datas.put("X-paramRecords", paramRecords);
-//        datas.put("X-paramRecords2", paramRecords2);
-        String[] priority = {"X-paramRecords","X-paramRecords2"};
+        String[] title = {"检验时间","供应商","产品编号","产品名称","规格型号","测量单位","批量数","检验结果",
+                "实际抽样数","不良数"};
+//        ,"不良率","检验状态","评审状态","检验单号","检验员","审核人"
+        String[] key = {"iqcDate","manufacturerName","productNo","productName","productSpec","totalQuantity",
+                "result","sampleQuantity","badQuantity","state"};
+//        ,"iqcNo","prodTypeName","prodUnit","reviewState","batchQuantity","badRate"
+        List<String> keys = Arrays.stream(key).map(value -> "${listMap." + value + "}").collect(Collectors.toList());
+        datas.put("X-title", title);
+        datas.put("X-keys", keys);
+
+        List<Map<String, String>> listMap = new ArrayList<>();
+        for(int i = 0; i < 10; i++){
+            Map<String, String> map = new HashMap<>();
+            map.put("iqcDate", "检验时间" + i);
+            map.put("manufacturerName", "供应商" + i);
+            map.put("productNo", "产品编号" + i);
+            map.put("productName", "产品名称" + i);
+            map.put("productSpec", "规格型号" + i);
+            map.put("totalQuantity", "测量单位aaaaaaaaaa" + i);
+            map.put("result", "批量数" + i);
+            map.put("sampleQuantity", "检验结果" + i);
+            map.put("badQuantity", "实际抽样数" + i);
+            map.put("state", "不良数" + i);
+            map.put("iqcNo", "不良率" + i);
+            map.put("prodTypeName", "检验状态" + i);
+            map.put("prodUnit", "评审状态" + i);
+            map.put("reviewState", "检验单号" + i);
+            map.put("batchQuantity", "检验员" + i);
+            map.put("badRate", "审核人" + i);
+            listMap.add(map);
+        }
+        datas.put("listMap", listMap);
+
+        String[] priority = {"X-title","X-keys","listMap"};
         datas.put(ORDER, priority);
 
-        App app = new App();
-        Workbook wb = app.excel("test.xlsx", datas);
-        File file = new File("D:/A临时/excel/test2.xlsx");
+        Workbook wb = new App().excelAdaptive("iqc-iqc-list.xlsx", datas);
+
+        File file = new File("D:/A临时/excel/iqc-iqc-list.xlsx");
         file.createNewFile();
         FileOutputStream os = new FileOutputStream(file);
         wb.write(os);
@@ -80,23 +88,85 @@ public class App {
         os.close();
     }
 
-    public Workbook excel(String fileName, Map<String, Object> datas) throws IOException {
-        if(!fileName.endsWith(".xlsx")&&!fileName.endsWith(".xls")){return null;}
+    public void empty(){
+        this.cellInfo = new HashMap<>();
+        this.arrayCellInfo = new HashMap<>();
+        this.inUse = new HashMap<>();
+        this.siteName = new HashMap<>();
+        this.wb = null;
+        this.suffix = "";
+    }
+
+    public void excelAdaptive(Workbook wb, Map<String, Object> datas) {
+        this.wb = wb;
+        excel(datas);
+        adaptiveColumn(wb, 255);
+    }
+
+    public Workbook excelAdaptive(String fileName, Map<String, Object> datas) throws IOException {
+        Workbook wb = excel(fileName, datas);
+        adaptiveColumn(wb, 255);
+        return wb;
+    }
+
+    public void adaptiveColumn(Workbook wb, int columnNum){
+        adaptiveColumn(wb, 0, columnNum);
+    }
+
+    public void adaptiveColumn(Workbook wb, int firstCell, int columnNum){
+        int numberOfSheets = wb.getNumberOfSheets();
+        for (int i = 0; i < numberOfSheets; i++) {
+            Sheet sheet = wb.getSheetAt(i);
+            adaptiveColumn(sheet, firstCell, columnNum);
+        }
+    }
+
+    public void adaptiveColumn(Sheet sheet, int firstCell, int columnNum){
+        for(int j = firstCell; j < columnNum; j++) {
+            sheet.autoSizeColumn(j);
+        }
+    }
+
+    public void start(String fileName) throws IOException {
+        if(!fileName.endsWith(".xlsx")&&!fileName.endsWith(".xls")){
+            throw new IOException("不是excel文件");
+        }
         ClassPathResource resource = new ClassPathResource(fileName);
         this.suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
         InputStream is = resource.getInputStream();
-        Workbook wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
-//        POIFSFileSystem ps = new POIFSFileSystem(is);
-        Sheet sheetAt = wb.getSheetAt(0);
+        this.wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
+    }
+
+    public Workbook pageExcel(String fileName, Map<String, Object> datas) throws IOException {
+        start(fileName);
+
+        Sheet sheetAt = this.wb.getSheetAt(0);
+
         initialize(sheetAt, datas);
         setBasicData(sheetAt, datas);
 
-        Sheet sheet = wb.createSheet();
+        Sheet sheet = this.wb.createSheet();
         copySheet(sheetAt, sheet);
 
         setAllArray(sheet, datas);
 
-        return wb;
+        return null;
+    }
+
+    public void excel(Map<String, Object> datas) {
+        Sheet sheet = this.wb.getSheetAt(0);
+        initialize(sheet, datas);
+        setBasicData(sheet, datas);
+        setAllArray(sheet, datas);
+    }
+
+    public Workbook excel(String fileName, Map<String, Object> datas) throws IOException {
+        start(fileName);
+        Sheet sheet = this.wb.getSheetAt(0);
+        initialize(sheet, datas);
+        setBasicData(sheet, datas);
+        setAllArray(sheet, datas);
+        return this.wb;
     }
 
     public void copySheet(Sheet sheet, Sheet newSheet){
@@ -135,9 +205,9 @@ public class App {
         }
 
 //        if("xlsx".equals(this.suffix)){
-//            List<POIXMLDocumentPart> relations = ((XSSFSheet) sheet).getRelations();
+//            XSSFSheet xSheet = (XSSFSheet) sheet;
 //        }else{
-//            List<HSSFShape> children = ((HSSFSheet) sheet).getDrawingPatriarch().getChildren();
+//            HSSFSheet hSheet = (HSSFSheet) sheet;
 //        }
 
     }
@@ -199,6 +269,7 @@ public class App {
      * @param datas 数据
      */
     public void initialize(Sheet sheet, Map<String, Object> datas){
+
         int firstRowNum = sheet.getFirstRowNum();
         int lastRowNum = sheet.getLastRowNum();
         for(int i = firstRowNum; i <= lastRowNum; i++){
@@ -259,12 +330,50 @@ public class App {
     public void setBasicData(Sheet sheet, Map<String, Object> datas){
         cellInfo.forEach((key, value) -> {
             Object o = datas.get(key);
-            Row row = sheet.getRow(value.getRowIndex());
-            Cell cell = row.getCell(value.getCellIndex());
-            String initially = value.getInitially();
-            String ending = value.getEnding();
-            cell.setCellValue(initially + o.toString() + ending);
+            Integer rowIndex = value.getRowIndex();
+            Row row = sheet.getRow(rowIndex);
+            Integer cellIndex = value.getCellIndex();
+            Cell cell = row.getCell(cellIndex);
+            if(o instanceof Image){
+                Image image = (Image) o;
+                byte[] bytes = image.getBytes();
+                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+                boolean merged = mergedRegion.isMerged();
+                int startX = 0;
+                int startY = 0;
+                int endX = 255;
+                int endY = 255;
+                int startCell = (merged ? mergedRegion.getFirstColumn() : cellIndex);
+                int startRow = (merged ? mergedRegion.getFirstRow() : rowIndex);
+                int endCell = (merged ? mergedRegion.getLastColumn() : cellIndex);
+                int endRow = (merged ? mergedRegion.getLastRow() : rowIndex);
+                if("xlsx".equals(this.suffix)){
+                    addXSSFImage((XSSFSheet) sheet, bytes, startX, startY, endX, endY, startCell, startRow, (endCell + 1), (endRow + 1));
+                }else if("xls".equals(this.suffix)){
+                    addHSSFImage((HSSFSheet) sheet, bytes, startX, startY, (endX + 1023 - endX), endY, (short) startCell, startRow, (short) endCell, endRow);
+                }
+            }else {
+                String initially = value.getInitially();
+                String ending = value.getEnding();
+                cell.setCellValue(initially + o.toString() + ending);
+            }
         });
+    }
+
+    public void addXSSFImage(XSSFSheet sheet, byte[] bytes, int startX, int startY, int endX, int endY, int startCell, int startRow, int endCell, int endRow){
+        XSSFDrawing drawingPatriarch = sheet.createDrawingPatriarch();
+        XSSFClientAnchor anchor = new XSSFClientAnchor(startX, startY, endX, endY, startCell, startRow, endCell, endRow);
+        anchor.setAnchorType(ClientAnchor.AnchorType.DONT_MOVE_AND_RESIZE);
+        int i = this.wb.addPicture(bytes, HSSFWorkbook.PICTURE_TYPE_JPEG);
+        drawingPatriarch.createPicture(anchor, i);
+    }
+
+    public void addHSSFImage(HSSFSheet sheet, byte[] bytes, int startX, int startY, int endX, int endY, short startCell, int startRow, short endCell, int endRow){
+        HSSFPatriarch drawingPatriarch = sheet.createDrawingPatriarch();
+        HSSFClientAnchor anchor = new HSSFClientAnchor(startX, startY, endX, endY, startCell, startRow, endCell, endRow);
+        anchor.setAnchorType(ClientAnchor.AnchorType.DONT_MOVE_AND_RESIZE);
+        int i = this.wb.addPicture(bytes, HSSFWorkbook.PICTURE_TYPE_JPEG);
+        drawingPatriarch.createPicture(anchor, i);
     }
 
     /**
@@ -278,15 +387,32 @@ public class App {
             for (String key : order) {
                 Object o = datas.get(key);
                 this.inUse = arrayCellInfo.get(key);
+                if(this.inUse == null){
+                    initialize(sheet, datas);
+                    this.inUse = arrayCellInfo.get(key);
+                }
                 if(this.inUse != null){
-                    eachTransferStop(key, o, sheet);
+                    CellInfo cellInfo = this.inUse.get(key);
+                    if(cellInfo != null){
+                        eachTransferStop(key, o, sheet, cellInfo.getRowIndex(), cellInfo.getCellIndex(), 1);
+                    }else{
+                        eachTransferStop(key, o, sheet);
+                    }
                 }
             }
         }else {
             arrayCellInfo.forEach((key, value) -> {
                 Object o = datas.get(key);
                 this.inUse = value;
-                eachTransferStop(key, o, sheet);
+                if(this.inUse != null){
+                    CellInfo cellInfo = this.inUse.get(key);
+                    if(cellInfo != null){
+                        eachTransferStop(key, o, sheet, cellInfo.getRowIndex(), cellInfo.getCellIndex(), 1);
+                    }else{
+                        eachTransferStop(key, o, sheet);
+                    }
+                }
+
             });
         }
     }
