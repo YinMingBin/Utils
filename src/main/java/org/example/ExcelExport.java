@@ -480,10 +480,10 @@ public class ExcelExport {
     public void setCellValue(Cell cell, Object data){
         if(data instanceof Number){
             cell.setCellValue(((Number) data).doubleValue());
+            cell.setCellType(CellType.NUMERIC);
         }else if(data instanceof Boolean){
             cell.setCellValue((boolean) data);
-        }else if(data instanceof Date){
-            cell.setCellValue((Date) data);
+            cell.setCellType(CellType.BOOLEAN);
         }else{
             cell.setCellValue(data.toString());
         }
