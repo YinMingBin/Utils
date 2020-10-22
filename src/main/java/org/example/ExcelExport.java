@@ -18,7 +18,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.*;
 
-public class ExcelUtil {
+public class ExcelExport {
     private Map<String, CellInfo> cellInfo = new HashMap<>();
     private Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
     private Map<String, CellInfo> inUse = new HashMap<>();
@@ -44,7 +44,7 @@ public class ExcelUtil {
     }
 
     public static Workbook excelAdaptive(String fileName, Map<String, Object> datas) throws IOException {
-        ExcelUtil abc = new ExcelUtil();
+        ExcelExport abc = new ExcelExport();
         Workbook wb = abc.excel(fileName, datas);
         abc.adaptiveColumn(wb, 255);
         return wb;

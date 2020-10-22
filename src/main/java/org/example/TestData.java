@@ -62,9 +62,9 @@ public class TestData {
         datas.put("listMap", listMap);
 
         String[] priority = {"X-title", "X-keys", "listMap"};
-        datas.put(ExcelUtil.ORDER, priority);
+        datas.put(ExcelExport.ORDER, priority);
 
-        Workbook wb = ExcelUtil.excelAdaptive("iqc-iqc-list.xlsx", datas);
+        Workbook wb = ExcelExport.excelAdaptive("iqc-iqc-list.xlsx", datas);
 
         File file = new File("D:/A临时/excel/iqc-iqc-list.xlsx");
         file.createNewFile();
