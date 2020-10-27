@@ -291,7 +291,7 @@ public class ExcelExport {
                 if("xlsx".equals(this.suffix)){
                     addXSSFImage((XSSFSheet) sheet, bytes, startX, startY, endX, endY, startCell, startRow, (endCell + 1), (endRow + 1));
                 }else if("xls".equals(this.suffix)){
-                    addHSSFImage((HSSFSheet) sheet, bytes, startX, startY, (endX + 1023 - endX), endY, (short) startCell, startRow, (short) endCell, endRow);
+                    addHSSFImage((HSSFSheet) sheet, bytes, startX, startY, (endX + 1023 - endX),  (endY - 10), (short) startCell, startRow, (short) endCell, endRow);
                 }
             }else {
                 String initially = value.getInitially();
@@ -628,23 +628,22 @@ public class ExcelExport {
             Integer cellIndex = cellInfo.getCellIndex();
             if (isNoArray(value)) {
                 if(index!=0){
-                    moveYCellSite(rowIndexI, cellIndex, 1);
+                    moveYCellSite(sheet, rowIndexI, cellIndex, 1);
                 }
                 String initially = cellInfo.getInitially();
                 String ending = cellInfo.getEnding();
                 if (!StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending)) {
                     value = initially + value + ending;
                 }
-                Cell Cell;
                 if(merged){
-                    Cell = setMergedCellValueY(value, mergedResult, sheet, rowIndexI, cellIndex);
+                    setMergedCellValueY(value, mergedResult, sheet, rowIndexI, cellIndex);
                     cellInfo.setRowIndex(rowIndex + rowNum - 1);
                 }else{
-                    Cell = setCellValueY(value, sheet, rowIndexI, cellIndex);
+                    Cell cell = setCellValueY(value, sheet, rowIndexI, cellIndex);
+                    setCellStyle(cell, cellInfo.getCellStyle());
+                    Row row = sheet.getRow(rowIndexI);
+                    row.setHeight(cellInfo.getRowHeigth());
                 }
-                setCellStyle(Cell, cellInfo.getCellStyle());
-                Row row = sheet.getRow(rowIndexI);
-                row.setHeight(cellInfo.getRowHeigth());
             } else {
                 int size = eachTransferStop(key, value, sheet, rowIndexI, cellIndex, index);
                 if(!key.contains(this.x)){
@@ -887,7 +886,7 @@ public class ExcelExport {
         cell.setCellValue("");
     }
 
-    public boolean moveYCellSite(int rowIndex, int cellIndex,int moveNum){
+    public boolean moveYCellSite(Sheet sheet, int rowIndex, int cellIndex,int moveNum){
         int site = rowIndex * 100 + cellIndex;
         String[] name = this.siteName.get(site);
         if(!StringUtils.isEmpty(name)){
@@ -897,6 +896,11 @@ public class ExcelExport {
             cellInfo.setRowIndex(rowSite);
             this.siteName.remove(site);
             this.siteName.put((rowSite * 100 + cellIndex), name);
+            Row row = sheet.getRow(rowSite);
+            if(row == null){
+                row = sheet.createRow(rowSite);
+            }
+            row.setHeight(cellInfo.getRowHeigth());
             return true;
         }
         return false;
@@ -917,13 +921,13 @@ public class ExcelExport {
         for (int i = 1; i <= time ; i++) {
             int rindex = rowIndex + i;
             newRow = sheet.getRow(rindex);
+            int moveNum = time - i + 1;
+            moveYCellSite(sheet, rindex, cellIndex, moveNum);
             if(newRow == null){
                 newRow = sheet.createRow(rindex);
                 newCell = newRow.createCell(cellIndex);
             }else{
                 newCell = newRow.getCell(cellIndex);
-                int moveNum = time - i + 1;
-                moveYCellSite(rindex, cellIndex, moveNum);
                 MergedResult mergedRegion = isMergedRegion(sheet, rindex, cellIndex);
                 if(mergedRegion.isMerged()){
                     moveMergeCellY(sheet, mergedRegion, moveNum);
@@ -974,6 +978,9 @@ public class ExcelExport {
         //保存旧单元格的值
         Row row = sheet.getRow(firstRow);
         Cell cell = row.getCell(firstColumn);
+        if(cell == null){
+            cell = row.createCell(firstColumn);
+        }
         String value = cell.toString();
         cell.setCellValue("");
 
@@ -1134,6 +1141,9 @@ public class ExcelExport {
 
         Row row = sheet.getRow(firstRow);
         Cell cell = row.getCell(firstColumn);
+        if(cell == null){
+            cell = row.createCell(firstColumn);
+        }
         String value = cell.toString();
         cell.setCellValue("");
 
@@ -1174,7 +1184,11 @@ public class ExcelExport {
                 int cellIndex = firstCell + j;
                 Cell cell = row.getCell(cellIndex);
                 int moveNum = rowNum - i + 1;
-                moveYCellSite(rowIndex, cellIndex, moveNum);
+                boolean b = moveYCellSite(sheet, rowIndex, cellIndex, moveNum);
+                if(b){
+                    Row row1 = sheet.getRow(rowIndex + moveNum);
+                    row1.setHeight(row.getHeight());
+                }
                 MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
                 if(mergedRegion.isMerged()){
                     moveMergeCellY(sheet, mergedRegion, moveNum);
