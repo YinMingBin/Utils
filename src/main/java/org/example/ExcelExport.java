@@ -44,9 +44,9 @@ public class ExcelExport {
     }
 
     public static Workbook excelAdaptive(String fileName, Map<String, Object> datas) throws IOException {
-        ExcelExport abc = new ExcelExport();
-        Workbook wb = abc.excel(fileName, datas);
-        abc.adaptiveColumn(wb, 255);
+        ExcelExport excelExport = new ExcelExport();
+        Workbook wb = excelExport.excel(fileName, datas);
+        excelExport.adaptiveColumn(wb, 255);
         return wb;
     }
 
