@@ -10,13 +10,18 @@ import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
+import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
+import sun.security.util.ArrayUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ExcelExport {
     private Map<String, CellInfo> cellInfo = new HashMap<>();
@@ -27,6 +32,23 @@ public class ExcelExport {
     public static final String ORDER = "PRIORITY";
     private final String x = "X-";
     private String suffix = "";
+
+    public static void main(String[] args) {
+        Object i = new ExcelExport();
+        ExcelExport export = (ExcelExport) i;
+        System.out.println(export == i);
+
+        List<Object> dataList = new ArrayList<>();
+        dataList.add(1);
+        dataList.add("2");
+        dataList.add('3');
+        dataList.add(4.5);
+        List<Object> objects = dataList.subList(0, 4);
+        List<Object> collect = objects.stream().collect(Collectors.toList());
+        objects.clear();
+        System.out.println(dataList);
+        System.out.println(collect);
+    }
 
     public void empty(){
         this.cellInfo = new HashMap<>();
@@ -78,20 +100,114 @@ public class ExcelExport {
         this.wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
     }
 
-    public Workbook pageExcel(String fileName, Map<String, Object> datas) throws IOException {
+    public Workbook pageExcel(String fileName, Map<String, Object> datas, int xIndex, int yIndex) throws IOException {
         start(fileName);
 
         Sheet sheetAt = this.wb.getSheetAt(0);
-
         initialize(sheetAt, datas);
         setBasicData(sheetAt, datas);
 
-        Sheet sheet = this.wb.createSheet();
-        copySheet(sheetAt, sheet);
+        Map<String, CellInfo> cellInfo = new HashMap<>();
+        BeanUtils.copyProperties(cellInfo, this.cellInfo);
+        Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
+        BeanUtils.copyProperties(arrayCellInfo, this.arrayCellInfo);
+        Map<String, CellInfo> inUse = new HashMap<>();
+        BeanUtils.copyProperties(inUse, this.inUse);
+        Map<Integer, String[]> siteName = new HashMap<>();
+        BeanUtils.copyProperties(siteName, this.siteName);
 
-        setAllArray(sheet, datas);
+        Map<String, Object> dataY = new HashMap<>();
+        BeanUtils.copyProperties(dataY, datas);
+        pageY(dataY, yIndex);
 
+        Map<String, Object> dataX = new HashMap<>();
+        BeanUtils.copyProperties(dataX, datas);
+
+        for(int i = 0; i < 1000; i++) {
+            Sheet sheet = this.wb.createSheet();
+            copySheet(sheetAt, sheet);
+
+            setAllArray(sheet, datas);
+
+            this.cellInfo = cellInfo;
+            this.arrayCellInfo = arrayCellInfo;
+            this.inUse = inUse;
+            this.siteName = siteName;
+        }
         return null;
+    }
+
+    public void pageY(Map<String, Object> datas, int yIndex){
+        Sheet sheet = this.wb.createSheet();
+        Map<String, Object> dataMap = new HashMap<>();
+        arrayCellInfo.forEach((key, value) -> {
+            Object o = datas.get(key);
+            CellInfo cellInfo = value.get(key);
+            Integer rowIndex = cellInfo.getRowIndex();
+            int num = yIndex - rowIndex;
+            if(o instanceof List){
+                List<Object> list = (List<Object>) o;
+                if(CollectionUtils.isEmpty(list)){
+                    List<Object> objects = pageList(num, list);
+                    dataMap.put(key, objects);
+                }
+            }else if(o.getClass().isArray()){
+                Object[] objs = (Object[]) o;
+                pageArray(num, objs);
+            }
+        });
+    }
+
+    public List<Object> pageList(int index, List<Object> dataList){
+        if(!CollectionUtils.isEmpty(dataList)) {
+            Object o = dataList.get(0);
+            if (isArray(o)) {
+                if(o instanceof List){
+                    pageList(index, (List<Object>) o);
+                }else if(o.getClass().isArray()){
+
+                }else if(o instanceof Map){
+
+                }
+            }else{
+                int size = Math.min(dataList.size(), index);
+                List<Object> objects = dataList.subList(0, size);
+                List<Object> collect = objects.stream().collect(Collectors.toList());
+                objects.clear();
+                return collect;
+            }
+        }
+        return new ArrayList<>();
+    }
+
+    public Object[] pageArray(int index, Object[] datas){
+        if(datas != null) {
+            Object o = datas[0];
+            if (isArray(o)) {
+                if(o instanceof List){
+                    pageList(index, (List<Object>) o);
+                }else if(o.getClass().isArray()){
+
+                }else if(o instanceof Map){
+
+                }
+            }else{
+                int size = Math.min(datas.length, index);
+                Object[] objs = new Object[size];
+                Object[] objs2 = new Object[datas.length - size];
+                for (int i = 0; i < datas.length; i++) {
+                    if(i < size){
+                        objs[i] = datas[i];
+                    }else{
+                        objs2[i - size] = datas[i];
+                    }
+                }
+
+                objects.clear();
+                return collect;
+            }
+        }
+        return new Object[]{};
     }
 
     public void excel(Map<String, Object> datas) {
