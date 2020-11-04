@@ -100,114 +100,137 @@ public class ExcelExport {
         this.wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
     }
 
-    public Workbook pageExcel(String fileName, Map<String, Object> datas, int xIndex, int yIndex) throws IOException {
-        start(fileName);
+    public static Workbook pageExcel(String fileName, Map<String, Object> datas, int xIndex, int yIndex) throws IOException {
+        ExcelExport export = new ExcelExport();
+        export.start(fileName);
 
-        Sheet sheetAt = this.wb.getSheetAt(0);
-        initialize(sheetAt, datas);
-        setBasicData(sheetAt, datas);
+        Sheet sheetAt = export.wb.getSheetAt(0);
+        export.initialize(sheetAt, datas);
+        export.setBasicData(sheetAt, datas);
 
         Map<String, CellInfo> cellInfo = new HashMap<>();
-        BeanUtils.copyProperties(cellInfo, this.cellInfo);
+        cellInfo.putAll(export.cellInfo);
         Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
-        BeanUtils.copyProperties(arrayCellInfo, this.arrayCellInfo);
+        arrayCellInfo.putAll(export.arrayCellInfo);
         Map<String, CellInfo> inUse = new HashMap<>();
-        BeanUtils.copyProperties(inUse, this.inUse);
+        inUse.putAll(export.inUse);
         Map<Integer, String[]> siteName = new HashMap<>();
-        BeanUtils.copyProperties(siteName, this.siteName);
+        siteName.putAll(export.siteName);
 
         Map<String, Object> dataY = new HashMap<>();
-        BeanUtils.copyProperties(dataY, datas);
-        pageY(dataY, yIndex);
-
         Map<String, Object> dataX = new HashMap<>();
-        BeanUtils.copyProperties(dataX, datas);
+        datas.forEach((key, value) -> {
+            dataY.put(key, value);
+            dataX.put(key, value);
+        });
 
-        for(int i = 0; i < 1000; i++) {
-            Sheet sheet = this.wb.createSheet();
-            copySheet(sheetAt, sheet);
+        while(!CollectionUtils.isEmpty(dataY)) {
+            Sheet sheet = export.wb.createSheet();
+            Map<String, Object> map = export.page(dataY, yIndex, false);
+            export.copySheet(sheetAt, sheet);
+            export.setAllArray(sheet, map);
 
-            setAllArray(sheet, datas);
-
-            this.cellInfo = cellInfo;
-            this.arrayCellInfo = arrayCellInfo;
-            this.inUse = inUse;
-            this.siteName = siteName;
+            export.cellInfo = cellInfo;
+            export.arrayCellInfo = arrayCellInfo;
+            export.inUse = inUse;
+            export.siteName = siteName;
         }
-        return null;
+
+        while(!CollectionUtils.isEmpty(dataX)) {
+            Sheet sheet = export.wb.createSheet();
+            BeanUtils.copyProperties(dataX, datas);
+            Map<String, Object> map = export.page(dataX, xIndex, true);
+            export.copySheet(sheetAt, sheet);
+            export.setAllArray(sheet, map);
+
+            export.cellInfo = cellInfo;
+            export.arrayCellInfo = arrayCellInfo;
+            export.inUse = inUse;
+            export.siteName = siteName;
+        }
+
+        return export.wb;
     }
 
-    public void pageY(Map<String, Object> datas, int yIndex){
-        Sheet sheet = this.wb.createSheet();
+    public Map<String, Object> page(Map<String, Object> datas, int yIndex, boolean isDelX){
         Map<String, Object> dataMap = new HashMap<>();
-        arrayCellInfo.forEach((key, value) -> {
+        this.arrayCellInfo.forEach((key, value) -> {
             Object o = datas.get(key);
-            CellInfo cellInfo = value.get(key);
-            Integer rowIndex = cellInfo.getRowIndex();
-            int num = yIndex - rowIndex;
+            boolean isDel = key.contains(this.x);
+            isDel = isDelX ? isDel : !isDelX;
             if(o instanceof List){
                 List<Object> list = (List<Object>) o;
                 if(CollectionUtils.isEmpty(list)){
-                    List<Object> objects = pageList(num, list);
+                    CellInfo cellInfo = value.get(key);
+                    Integer rowIndex = cellInfo.getRowIndex();
+                    int num = yIndex - rowIndex;
+                    List<Object> objects = pageList(num, value, list, isDel);
                     dataMap.put(key, objects);
                 }
             }else if(o.getClass().isArray()){
                 Object[] objs = (Object[]) o;
-                pageArray(num, objs);
+            }else if (o instanceof Map){
+                Map<String, Object> list = (Map<String, Object>) o;
+                if(CollectionUtils.isEmpty(list)){
+                    Map<Object, Object> objects = pageMap(yIndex, value, list, isDel);
+                    dataMap.put(key, objects);
+                }
             }
         });
+        return dataMap;
     }
 
-    public List<Object> pageList(int index, List<Object> dataList){
+    public void pageTransfer(int index, Map<String, CellInfo> cellInfos, Object value, boolean isDel){
+        if(value instanceof List){
+            pageList(index, cellInfos, (List<Object>) value, isDel);
+        }else if(value.getClass().isArray()){
+        }else if(value instanceof Map){
+            pageMap(index, cellInfos, (Map<String, Object>) value, isDel);
+        }
+    }
+
+    public List<Object> pageList(int index, Map<String, CellInfo> cellInfos, List<Object> dataList, boolean isDel){
         if(!CollectionUtils.isEmpty(dataList)) {
             Object o = dataList.get(0);
             if (isArray(o)) {
-                if(o instanceof List){
-                    pageList(index, (List<Object>) o);
-                }else if(o.getClass().isArray()){
-
-                }else if(o instanceof Map){
-
-                }
+                pageTransfer(index, cellInfos, o, isDel);
             }else{
                 int size = Math.min(dataList.size(), index);
                 List<Object> objects = dataList.subList(0, size);
                 List<Object> collect = objects.stream().collect(Collectors.toList());
-                objects.clear();
+                if(isDel){
+                    objects.clear();
+                }
                 return collect;
             }
         }
         return new ArrayList<>();
     }
 
-    public Object[] pageArray(int index, Object[] datas){
-        if(datas != null) {
-            Object o = datas[0];
-            if (isArray(o)) {
-                if(o instanceof List){
-                    pageList(index, (List<Object>) o);
-                }else if(o.getClass().isArray()){
-
-                }else if(o instanceof Map){
-
-                }
-            }else{
-                int size = Math.min(datas.length, index);
-                Object[] objs = new Object[size];
-                Object[] objs2 = new Object[datas.length - size];
-                for (int i = 0; i < datas.length; i++) {
-                    if(i < size){
-                        objs[i] = datas[i];
-                    }else{
-                        objs2[i - size] = datas[i];
+    public Map<Object, Object> pageMap(int index, Map<String, CellInfo> cellInfos, Map<String, Object> dataMap, boolean isDel){
+        if(!CollectionUtils.isEmpty(dataMap)) {
+            Map<Object, Object> objs = new HashMap<>();
+            int i = 0;
+            for(Map.Entry<String, Object> map : dataMap.entrySet()){
+                String key = map.getKey();
+                Object value = map.getValue();
+                CellInfo cellInfo = cellInfos.get(key);
+                Integer rowIndex = cellInfo.getRowIndex();
+                int num = index - rowIndex;
+                if(i++ < num) {
+                    if (isArray(value)) {
+                        pageTransfer(index, cellInfos, value, isDel);
+                    } else {
+                        objs.put(key, value);
+                        if (isDel) {
+                            dataMap.remove(key);
+                        }
                     }
                 }
-
-                objects.clear();
-                return collect;
             }
+            return objs;
         }
-        return new Object[]{};
+        return new HashMap<>();
     }
 
     public void excel(Map<String, Object> datas) {
@@ -620,31 +643,34 @@ public class ExcelExport {
      * @return
      */
     public int eachTransferStop(String name, Object data, Sheet sheet, int rowIndex, int cellIndex, int index){
-        int size;
-        if(name.contains(this.x)){
-            if(data instanceof Map) {
-                setXMapData((Map) data, sheet, index);
-                size = ((Map) data).size();
-            }else if(data instanceof List){
-                setXListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
-                size = ((List<Object>) data).size();
-            }else{
-                setXArrayData(name, (Object[]) data, sheet, rowIndex, cellIndex);
-                size = ((Object[]) data).length;
-            }
-        }else {
-            if (data instanceof Map) {
-                setYMapData((Map) data, sheet, index);
-                size = ((Map) data).size();
-            } else if (data instanceof List) {
-                setYListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
-                size = ((List<Object>) data).size();
+        if(data != null) {
+            int size;
+            if (name.contains(this.x)) {
+                if (data instanceof Map) {
+                    setXMapData((Map) data, sheet, index);
+                    size = ((Map) data).size();
+                } else if (data instanceof List) {
+                    setXListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
+                    size = ((List<Object>) data).size();
+                } else {
+                    setXArrayData(name, (Object[]) data, sheet, rowIndex, cellIndex);
+                    size = ((Object[]) data).length;
+                }
             } else {
-                setYArrayData(name, (Object[]) data, sheet, rowIndex, cellIndex);
-                size = ((Object[]) data).length;
+                if (data instanceof Map) {
+                    setYMapData((Map) data, sheet, index);
+                    size = ((Map) data).size();
+                } else if (data instanceof List) {
+                    setYListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
+                    size = ((List<Object>) data).size();
+                } else {
+                    setYArrayData(name, (Object[]) data, sheet, rowIndex, cellIndex);
+                    size = ((Object[]) data).length;
+                }
             }
+            return size;
         }
-        return size;
+        return 0;
     }
 
     /**
