@@ -1312,35 +1312,38 @@ public class ExcelExport {
 
     }
 
+    /**
+     * 区域向下移动
+     * @param sheet 表
+     * @param firstRow 开始行号
+     * @param rowNum 移动行数
+     * @param firstCell 开始列号
+     * @param cellNum 移动列数
+     */
     public void moveRegionY(Sheet sheet, int firstRow, int rowNum, int firstCell, int cellNum){
-        boolean[] isSkip = new boolean[rowNum + 1];
-        for(int i = 1; i <= rowNum; i++){
-            int rowIndex = firstRow + i;
-            Row row = sheet.getRow(rowIndex);
-            if(row == null){
-                sheet.createRow(rowIndex);
-                continue;
+        boolean[] isSkip = new boolean[cellNum + 1];
+        int rowIndex = firstRow + 1;
+        Row row = sheet.getRow(rowIndex);
+        for (int j = 0; j < cellNum; j++) {
+            if(isSkip[j]){ continue;}
+            int cellIndex = firstCell + j;
+            Cell cell = row.getCell(cellIndex);
+            boolean b = moveYCellSite(sheet, rowIndex, cellIndex, rowNum);
+            if(b){
+                Row row1 = sheet.getRow(rowIndex + rowNum);
+                row1.setHeight(row.getHeight());
             }
-            for (int j = 0; j < cellNum; j++) {
-                if(isSkip[j]){ continue;}
-                int cellIndex = firstCell + j;
-                Cell cell = row.getCell(cellIndex);
-                int moveNum = rowNum - i + 1;
-                boolean b = moveYCellSite(sheet, rowIndex, cellIndex, moveNum);
-                if(b){
-                    Row row1 = sheet.getRow(rowIndex + moveNum);
-                    row1.setHeight(row.getHeight());
+            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+            if(mergedRegion.isMerged()){
+                moveMergeCellY(sheet, mergedRegion, rowNum);
+                for (int i1 = 0; i1 < mergedRegion.getColumnMergeNum(); i1++) {
+                    isSkip[j + i1] = true;
                 }
-                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-                if(mergedRegion.isMerged()){
-                    moveMergeCellY(sheet, mergedRegion, moveNum);
-                    isSkip[i] = true;
-                }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
-                    moveCellY(sheet, rowIndex, cellIndex, moveNum);
-                    isSkip[j] = true;
-                }else if(cell == null){
-                    row.createCell(cellIndex);
-                }
+            }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
+                moveCellY(sheet, rowIndex, cellIndex, rowNum);
+                isSkip[j] = true;
+            }else if(cell == null){
+                row.createCell(cellIndex);
             }
         }
     }
