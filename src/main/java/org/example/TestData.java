@@ -23,20 +23,6 @@ public class TestData {
         while (-1 != (n = is.read(buffer))) {
             output.write(buffer, 0, n);
         }
-        datas.put("logo", new Image(output.toByteArray()));
-        datas.put("companyName", "深圳市矢分科技有限公司");
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        datas.put("reportDate", sdf.format(new Date()));
-
-        String[] title = {"检验时间", "供应商", "产品编号", "产品名称", "规格型号", "测量单位", "批量数", "检验结果",
-                "实际抽样数", "不良数"};
-//        ,"不良率","检验状态","评审状态","检验单号","检验员","审核人"
-        String[] key = {"iqcDate", "manufacturerName", "productNo", "productName", "productSpec", "totalQuantity",
-                "result", "sampleQuantity", "badQuantity", "state"};
-//        ,"iqcNo","prodTypeName","prodUnit","reviewState","batchQuantity","badRate"
-        List<String> keys = Arrays.stream(key).map(value -> "${listMap." + value + "}").collect(Collectors.toList());
-        datas.put("X-title", title);
-        datas.put("X-keys", keys);
 
         List<Map<String, String>> listMap = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -61,16 +47,14 @@ public class TestData {
         }
         datas.put("listMap", listMap);
 
-        String[] priority = {"X-title", "X-keys", "listMap"};
-        datas.put(ExcelExport.ORDER, priority);
+        Workbook wb = ExcelExport.pageExcel("test.xlsx", datas, 5, 6);
 
-        Workbook wb = ExcelExport.excelAdaptive("iqc-iqc-list.xlsx", datas);
-
-        File file = new File("D:/A临时/excel/iqc-iqc-list.xlsx");
+        File file = new File("D:/A临时/excel/test.xlsx");
         file.createNewFile();
         FileOutputStream os = new FileOutputStream(file);
         wb.write(os);
         os.flush();
         os.close();
     }
+
 }

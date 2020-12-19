@@ -14,15 +14,15 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
-import sun.security.util.ArrayUtil;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.lang.reflect.Array;
 import java.util.*;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 
+/**
+ * 数据导出成excel
+ * @author Administrator
+ */
 public class ExcelExport {
     private Map<String, CellInfo> cellInfo = new HashMap<>();
     private Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
@@ -33,32 +33,6 @@ public class ExcelExport {
     private final String x = "X-";
     private String suffix = "";
 
-    public static void main(String[] args) {
-        Object i = new ExcelExport();
-        ExcelExport export = (ExcelExport) i;
-        System.out.println(export == i);
-
-        List<Object> dataList = new ArrayList<>();
-        dataList.add(1);
-        dataList.add("2");
-        dataList.add('3');
-        dataList.add(4.5);
-        List<Object> objects = dataList.subList(0, 4);
-        List<Object> collect = objects.stream().collect(Collectors.toList());
-        objects.clear();
-        System.out.println(dataList);
-        System.out.println(collect);
-    }
-
-    public void empty(){
-        this.cellInfo = new HashMap<>();
-        this.arrayCellInfo = new HashMap<>();
-        this.inUse = new HashMap<>();
-        this.siteName = new HashMap<>();
-        this.wb = null;
-        this.suffix = "";
-    }
-
     public void excelAdaptive(Workbook wb, Map<String, Object> datas) {
         this.wb = wb;
         excel(datas);
@@ -68,36 +42,8 @@ public class ExcelExport {
     public static Workbook excelAdaptive(String fileName, Map<String, Object> datas) throws IOException {
         ExcelExport excelExport = new ExcelExport();
         Workbook wb = excelExport.excel(fileName, datas);
-        excelExport.adaptiveColumn(wb, 255);
+        ExcelExport.adaptiveColumn(wb, 255);
         return wb;
-    }
-
-    public void adaptiveColumn(Workbook wb, int columnNum){
-        adaptiveColumn(wb, 0, columnNum);
-    }
-
-    public void adaptiveColumn(Workbook wb, int firstCell, int columnNum){
-        int numberOfSheets = wb.getNumberOfSheets();
-        for (int i = 0; i < numberOfSheets; i++) {
-            Sheet sheet = wb.getSheetAt(i);
-            adaptiveColumn(sheet, firstCell, columnNum);
-        }
-    }
-
-    public void adaptiveColumn(Sheet sheet, int firstCell, int columnNum){
-        for(int j = firstCell; j < columnNum; j++) {
-            sheet.autoSizeColumn(j);
-        }
-    }
-
-    public void start(String fileName) throws IOException {
-        if(!fileName.endsWith(".xlsx")&&!fileName.endsWith(".xls")){
-            throw new IOException("不是excel文件");
-        }
-        ClassPathResource resource = new ClassPathResource(fileName);
-        this.suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
-        InputStream is = resource.getInputStream();
-        this.wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
     }
 
     public static Workbook pageExcel(String fileName, Map<String, Object> datas, int xIndex, int yIndex) throws IOException {
@@ -108,14 +54,10 @@ public class ExcelExport {
         export.initialize(sheetAt, datas);
         export.setBasicData(sheetAt, datas);
 
-        Map<String, CellInfo> cellInfo = new HashMap<>();
-        cellInfo.putAll(export.cellInfo);
-        Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
-        arrayCellInfo.putAll(export.arrayCellInfo);
-        Map<String, CellInfo> inUse = new HashMap<>();
-        inUse.putAll(export.inUse);
-        Map<Integer, String[]> siteName = new HashMap<>();
-        siteName.putAll(export.siteName);
+        Map<String, CellInfo> cellInfo = new HashMap<>(export.cellInfo);
+        Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>(export.arrayCellInfo);
+        Map<String, CellInfo> inUse = new HashMap<>(export.inUse);
+        Map<Integer, String[]> siteName = new HashMap<>(export.siteName);
 
         Map<String, Object> dataY = new HashMap<>();
         Map<String, Object> dataX = new HashMap<>();
@@ -157,7 +99,7 @@ public class ExcelExport {
         this.arrayCellInfo.forEach((key, value) -> {
             Object o = datas.get(key);
             boolean isDel = key.contains(this.x);
-            isDel = isDelX ? isDel : !isDelX;
+            isDel = !isDelX || isDel;
             if(o instanceof List){
                 List<Object> list = (List<Object>) o;
                 if(CollectionUtils.isEmpty(list)){
@@ -197,7 +139,7 @@ public class ExcelExport {
             }else{
                 int size = Math.min(dataList.size(), index);
                 List<Object> objects = dataList.subList(0, size);
-                List<Object> collect = objects.stream().collect(Collectors.toList());
+                List<Object> collect = new ArrayList<>(objects);
                 if(isDel){
                     objects.clear();
                 }
@@ -233,22 +175,90 @@ public class ExcelExport {
         return new HashMap<>();
     }
 
-    public void excel(Map<String, Object> datas) {
+    public void excel(Map<String, Object> dataMap) {
         Sheet sheet = this.wb.getSheetAt(0);
-        initialize(sheet, datas);
-        setBasicData(sheet, datas);
-        setAllArray(sheet, datas);
+        initialize(sheet, dataMap);
+        setBasicData(sheet, dataMap);
+        setAllArray(sheet, dataMap);
     }
 
-    public Workbook excel(String fileName, Map<String, Object> datas) throws IOException {
+    public Workbook excel(String fileName, Map<String, Object> dataMap) throws IOException {
         start(fileName);
         Sheet sheet = this.wb.getSheetAt(0);
-        initialize(sheet, datas);
-        setBasicData(sheet, datas);
-        setAllArray(sheet, datas);
+        initialize(sheet, dataMap);
+        setBasicData(sheet, dataMap);
+        setAllArray(sheet, dataMap);
         return this.wb;
     }
 
+    /**
+     * 清空数据
+     */
+    public void empty(){
+        this.cellInfo = new HashMap<>(0);
+        this.arrayCellInfo = new HashMap<>(0);
+        this.inUse = new HashMap<>(0);
+        this.siteName = new HashMap<>(0);
+        this.wb = null;
+        this.suffix = "";
+    }
+
+    /**
+     * 所有表自适应列宽（第1列开始）
+     * @param wb excel文件
+     * @param columnNum 列数
+     */
+    public static void adaptiveColumn(Workbook wb, int columnNum){
+        adaptiveColumn(wb, 0, columnNum);
+    }
+
+    /**
+     * 所有表自适应列宽
+     * @param wb excel文件
+     * @param firstCell 开始列
+     * @param columnNum 列数
+     */
+    public static void adaptiveColumn(Workbook wb, int firstCell, int columnNum){
+        int numberOfSheets = wb.getNumberOfSheets();
+        for (int i = 0; i < numberOfSheets; i++) {
+            Sheet sheet = wb.getSheetAt(i);
+            adaptiveColumn(sheet, firstCell, columnNum);
+        }
+    }
+
+    /**
+     * 自适应列宽
+     * @param sheet 表
+     * @param firstCell 开始列
+     * @param columnNum 列数
+     */
+    public static void adaptiveColumn(Sheet sheet, int firstCell, int columnNum){
+        for(int j = firstCell; j < columnNum; j++) {
+            sheet.autoSizeColumn(j);
+            sheet.setColumnWidth(j, (sheet.getColumnWidth(j) + 400));
+        }
+    }
+
+    /**
+     * 文件初始化
+     * @param fileName 文件名
+     * @throws IOException io流异常
+     */
+    public void start(String fileName) throws IOException {
+        if(!fileName.endsWith(".xlsx")&&!fileName.endsWith(".xls")){
+            throw new IOException("不是excel文件");
+        }
+        ClassPathResource resource = new ClassPathResource(fileName);
+        this.suffix = fileName.substring(fileName.lastIndexOf(".") + 1);
+        InputStream is = resource.getInputStream();
+        this.wb = "xlsx".equals(this.suffix) ? new XSSFWorkbook(is) : new HSSFWorkbook(is);
+    }
+
+    /**
+     * 拷贝表
+     * @param sheet 被拷贝表
+     * @param newSheet 拷贝目地表
+     */
     public void copySheet(Sheet sheet, Sheet newSheet){
         int firstRowNum = sheet.getFirstRowNum();
         int lastRowNum = sheet.getLastRowNum();
@@ -292,6 +302,11 @@ public class ExcelExport {
 
     }
 
+    /**
+     * 拷贝行
+     * @param row 被拷贝行
+     * @param newRow 拷贝目地行
+     */
     public void copyRow(Row row, Row newRow){
         short height = row.getHeight();
         newRow.setHeight(height);
@@ -321,6 +336,11 @@ public class ExcelExport {
         }
     }
 
+    /**
+     * 拷贝单元格
+     * @param cell 被拷贝单元格
+     * @param newCell 拷贝目地单元格
+     */
     public void copyCell(Cell cell, Cell newCell){
         if(cell == null || newCell == null){return;}
         CellType cellTypeEnum = cell.getCellTypeEnum();
@@ -345,10 +365,10 @@ public class ExcelExport {
 
     /**
      * 初始化，获取所有赋值单元格信息（${name}），数据分类（可直接赋值，遍历赋值（Map、List、Object[]））
-     * @param sheet
-     * @param datas 数据
+     * @param sheet 表
+     * @param dataMap 数据
      */
-    public void initialize(Sheet sheet, Map<String, Object> datas){
+    public void initialize(Sheet sheet, Map<String, Object> dataMap){
 
         int firstRowNum = sheet.getFirstRowNum();
         int lastRowNum = sheet.getLastRowNum();
@@ -370,7 +390,7 @@ public class ExcelExport {
                             String[] split = substring.split("\\.");
                             int splitLen = split.length;
                             String s = split[0];
-                            Object o = datas.get(s);
+                            Object o = dataMap.get(s);
                             if (o != null) {
                                 String subEnding = cellValue.substring(ending + finish.length());
                                 String str = split[splitLen - 1];
@@ -404,7 +424,7 @@ public class ExcelExport {
 
     /**
      * 所有直接赋值单元格赋值
-     * @param sheet
+     * @param sheet 表
      * @param datas 数据
      */
     public void setBasicData(Sheet sheet, Map<String, Object> datas){
@@ -440,6 +460,19 @@ public class ExcelExport {
         });
     }
 
+    /**
+     * xlsx文件插入图片
+     * @param sheet 表
+     * @param bytes 图片二进制数组
+     * @param startX 开始X坐标
+     * @param startY 开始Y坐标
+     * @param endX 结束X坐标
+     * @param endY 结束Y坐标
+     * @param startCell 开始列
+     * @param startRow 开始行
+     * @param endCell 结束列
+     * @param endRow 结束行
+     */
     public void addXSSFImage(XSSFSheet sheet, byte[] bytes, int startX, int startY, int endX, int endY, int startCell, int startRow, int endCell, int endRow){
         XSSFDrawing drawingPatriarch = sheet.createDrawingPatriarch();
         XSSFClientAnchor anchor = new XSSFClientAnchor(startX, startY, endX, endY, startCell, startRow, endCell, endRow);
@@ -448,6 +481,19 @@ public class ExcelExport {
         drawingPatriarch.createPicture(anchor, i);
     }
 
+    /**
+     * xls文件插入图片
+     * @param sheet 表
+     * @param bytes 图片二进制数组
+     * @param startX 开始X坐标
+     * @param startY 开始Y坐标
+     * @param endX 结束X坐标
+     * @param endY 结束Y坐标
+     * @param startCell 开始列
+     * @param startRow 开始行
+     * @param endCell 结束列
+     * @param endRow 结束行
+     */
     public void addHSSFImage(HSSFSheet sheet, byte[] bytes, int startX, int startY, int endX, int endY, short startCell, int startRow, short endCell, int endRow){
         HSSFPatriarch drawingPatriarch = sheet.createDrawingPatriarch();
         HSSFClientAnchor anchor = new HSSFClientAnchor(startX, startY, endX, endY, startCell, startRow, endCell, endRow);
@@ -458,7 +504,7 @@ public class ExcelExport {
 
     /**
      * 所有遍历赋值单元格赋值
-     * @param sheet
+     * @param sheet 表
      * @param datas 数据
      */
     public void setAllArray(Sheet sheet, Map<String, Object> datas){
@@ -497,6 +543,15 @@ public class ExcelExport {
         }
     }
 
+    /**
+     * 左右移动合并单元格赋值
+     * @param data 要赋的值
+     * @param mergedResult 合并单元格信息
+     * @param sheet 表
+     * @param rowIndex 行号
+     * @param cellIndex 列号
+     * @return 复制的单元格
+     */
     public Cell setMergedCellValueX(Object data, MergedResult mergedResult, Sheet sheet, int rowIndex, int cellIndex){
         int firstColumn = mergedResult.getFirstColumn();
         int firstRow = mergedResult.getFirstRow();
@@ -522,12 +577,12 @@ public class ExcelExport {
     }
 
     /**
-     * 给单元给赋值
+     * 左右移动单元给赋值
      * @param data 数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 所在行
      * @param cellIndex 所在列
-     * @return
+     * @return 赋值的单元格
      */
     public Cell setCellValueX(Object data, Sheet sheet, int rowIndex, int cellIndex, int moveNum){
         Row row = sheet.getRow(rowIndex);
@@ -555,7 +610,15 @@ public class ExcelExport {
         return setCellValueX(data, sheet, rowIndex, cellIndex, 1);
     }
 
-    public Cell setMergedCellValueY(Object data, MergedResult mergedResult, Sheet sheet, int rowIndex, int cellIndex){
+    /**
+     * 上下移动合并单元格赋值
+     * @param data 要赋的值
+     * @param mergedResult 合并单元格信息
+     * @param sheet 表
+     * @param rowIndex 行号
+     * @param cellIndex 列号
+     */
+    public void setMergedCellValueY(Object data, MergedResult mergedResult, Sheet sheet, int rowIndex, int cellIndex){
         int firstRow = mergedResult.getFirstRow();
         int firstColumn = mergedResult.getFirstColumn();
         if(!(firstRow == rowIndex && firstColumn == cellIndex)){
@@ -579,16 +642,15 @@ public class ExcelExport {
             cell = row.createCell(cellIndex);
         }
         setCellValue(cell, data);
-        return cell;
     }
 
     /**
-     * 给单元给赋值
+     * 上下单元给赋值
      * @param data 数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 所在行
      * @param cellIndex 所在列
-     * @return
+     * @return 赋值的单元格
      */
     public Cell setCellValueY(Object data, Sheet sheet, int rowIndex, int cellIndex, int moveNum){
         Row row = sheet.getRow(rowIndex);
@@ -628,26 +690,22 @@ public class ExcelExport {
         }
     }
 
-    public int eachTransferStop(String name, Object data, Sheet sheet){
-        return eachTransferStop(name, data, sheet, 0, 0, -10000);
-    }
-
     /**
      * 中转站，根据数据类型调用相应方法进行赋值（Map，List，Object[]）
      * @param name 赋值单元格名称
      * @param data 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 初始行
      * @param cellIndex 初始列
      * @param index 初始列偏移量  >-9999初始列+index,<=-9999初始列根据数据数量进行累加
-     * @return
+     * @return 条数
      */
     public int eachTransferStop(String name, Object data, Sheet sheet, int rowIndex, int cellIndex, int index){
         if(data != null) {
             int size;
             if (name.contains(this.x)) {
                 if (data instanceof Map) {
-                    setXMapData((Map) data, sheet, index);
+                    setXMapData((Map<String, Object>) data, sheet, index);
                     size = ((Map) data).size();
                 } else if (data instanceof List) {
                     setXListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
@@ -658,7 +716,7 @@ public class ExcelExport {
                 }
             } else {
                 if (data instanceof Map) {
-                    setYMapData((Map) data, sheet, index);
+                    setYMapData((Map<String, Object>) data, sheet, index);
                     size = ((Map) data).size();
                 } else if (data instanceof List) {
                     setYListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
@@ -673,10 +731,14 @@ public class ExcelExport {
         return 0;
     }
 
+    public void eachTransferStop(String name, Object data, Sheet sheet){
+        eachTransferStop(name, data, sheet, 0, 0, -10000);
+    }
+
     /**
      * Map集合向右赋值
      * @param datas 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param index 初始列偏移量  >-9999初始列+index,<=-9999初始列根据数据数量进行累加
      */
     public void setXMapData(Map<String, Object> datas, Sheet sheet, int index){
@@ -704,7 +766,7 @@ public class ExcelExport {
             int columnNum = mergedResult.getColumnMergeNum();
             Integer rowIndex = cellInfo.getRowIndex();
             Integer cellIndex = cellInfo.getCellIndex();
-            Integer cellIndexI = cellIndex + index;
+            int cellIndexI = cellIndex + index;
             if (isNoArray(value)) {
                 if(index!=0){
                     moveXCellSite(rowIndex, cellIndexI, 1);
@@ -740,7 +802,7 @@ public class ExcelExport {
     /**
      * Map集合向下赋值
      * @param datas 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param index 初始行偏移量  >-9999初始行+index,<=-9999根据数据数量进行累加
      */
     public void setYMapData(Map<String, Object> datas, Sheet sheet, int index){
@@ -766,7 +828,7 @@ public class ExcelExport {
             boolean merged = mergedResult.isMerged();
             int rowNum = mergedResult.getRowMergeNum();
             Integer rowIndex = cellInfo.getRowIndex();
-            Integer rowIndexI = rowIndex + index;
+            int rowIndexI = rowIndex + index;
             Integer cellIndex = cellInfo.getCellIndex();
             if (isNoArray(value)) {
                 if(index!=0){
@@ -804,7 +866,7 @@ public class ExcelExport {
      * List集合向右赋值
      * @param name 赋值单元格名称
      * @param datas 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
@@ -837,8 +899,10 @@ public class ExcelExport {
                     cellIndex += mergedResult.getColumnMergeNum() - 1;
                 }else{
                     Cell cell = setCellValueX(value, sheet, rowIndex, cellIndexI, dataSize - i);
-                    setCellStyle(cell, cellInfo.getCellStyle());
-                    sheet.setColumnWidth(cellIndexI, cellInfo.getColumnWidth());
+                    if (cellInfo != null) {
+                        setCellStyle(cell, cellInfo.getCellStyle());
+                        sheet.setColumnWidth(cellIndexI, cellInfo.getColumnWidth());
+                    }
                 }
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndexI, i);
@@ -853,7 +917,7 @@ public class ExcelExport {
      * List集合向下赋值
      * @param name 赋值单元格名称
      * @param datas 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
@@ -886,9 +950,11 @@ public class ExcelExport {
                     rowIndex += mergedResult.getRowMergeNum() - 1;
                 }else{
                     Cell cell = setCellValueY(value, sheet, rowIndexI, cellIndex, dataSize - i);
-                    setCellStyle(cell, cellInfo.getCellStyle());
-                    Row row = sheet.getRow(rowIndexI);
-                    row.setHeight(cellInfo.getRowHeigth());
+                    if (cellInfo != null) {
+                        setCellStyle(cell, cellInfo.getCellStyle());
+                        Row row = sheet.getRow(rowIndexI);
+                        row.setHeight(cellInfo.getRowHeigth());
+                    }
                 }
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndexI, cellIndex, i);
@@ -903,7 +969,7 @@ public class ExcelExport {
      * 数组类型向右赋值
      * @param name 赋值单元格名称
      * @param datas 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
@@ -927,8 +993,10 @@ public class ExcelExport {
                     value = initially + value + ending;
                 }
                 Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex, dataLen - i);
-                setCellStyle(Cell, cellInfo.getCellStyle());
-                cellInfo.setColumnWidth(cellInfo.getColumnWidth());
+                if (cellInfo != null) {
+                    setCellStyle(Cell, cellInfo.getCellStyle());
+                    cellInfo.setColumnWidth(cellInfo.getColumnWidth());
+                }
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndex, i);
                 if(name.contains(this.x)){
@@ -942,7 +1010,7 @@ public class ExcelExport {
      * 数组类型向下赋值
      * @param name 赋值单元格名称
      * @param datas 赋值数据
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
@@ -966,9 +1034,11 @@ public class ExcelExport {
                     value = initially + value + ending;
                 }
                 Cell Cell = setCellValueY(value, sheet, rowIndex, cellIndex, dataLen - i);
-                setCellStyle(Cell, cellInfo.getCellStyle());
-                Row row = sheet.getRow(rowIndex);
-                row.setHeight(cellInfo.getRowHeigth());
+                if (cellInfo != null) {
+                    setCellStyle(Cell, cellInfo.getCellStyle());
+                    Row row = sheet.getRow(rowIndex);
+                    row.setHeight(cellInfo.getRowHeigth());
+                }
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndex, i);
                 if(!name.contains(this.x)){
@@ -978,7 +1048,7 @@ public class ExcelExport {
         }
     }
 
-    public boolean moveXCellSite(int rowIndex, int cellIndex, int moveNum){
+    public void moveXCellSite(int rowIndex, int cellIndex, int moveNum){
         int site = rowIndex * 100 + cellIndex;
         String[] name = this.siteName.get(site);
         if(!StringUtils.isEmpty(name)){
@@ -988,14 +1058,12 @@ public class ExcelExport {
             cellInfo.setCellIndex(cellSite);
             this.siteName.remove(site);
             this.siteName.put((rowIndex * 100 + cellSite), name);
-            return true;
         }
-        return false;
     }
 
     /**
      * 左右移动单元格
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 单元格所在行
      * @param cellIndex 单元格所在列
      * @param time 移动列数
@@ -1028,7 +1096,7 @@ public class ExcelExport {
         cell.setCellValue("");
     }
 
-    public boolean moveYCellSite(Sheet sheet, int rowIndex, int cellIndex,int moveNum){
+    public boolean moveYCellSite(Sheet sheet, int rowIndex, int cellIndex, int moveNum){
         int site = rowIndex * 100 + cellIndex;
         String[] name = this.siteName.get(site);
         if(!StringUtils.isEmpty(name)){
@@ -1050,7 +1118,7 @@ public class ExcelExport {
 
     /**
      * 上下移动单元格
-     * @param sheet
+     * @param sheet 表
      * @param rowIndex 单元格所在行
      * @param cellIndex 单元格所在列
      * @param time 移动行数
@@ -1089,14 +1157,16 @@ public class ExcelExport {
 
         copyCell(cell, newCell);
         copyCellStyle(cell, newCell);
-        newRow.setHeight(row.getHeight());
+        if (newRow != null) {
+            newRow.setHeight(row.getHeight());
+        }
         cell.setCellStyle(null);
         cell.setCellValue("");
     }
 
     /**
      * 左右移动合并单元格
-     * @param sheet
+     * @param sheet 表
      * @param mr 合并单元格信息
      * @param time 移动列数
      */
@@ -1152,6 +1222,14 @@ public class ExcelExport {
 
     }
 
+    /**
+     * 区域左右移动
+     * @param sheet 表
+     * @param firstRow 开始行
+     * @param rowNum 移动行数
+     * @param firstCell 开始列
+     * @param cellNum 移动列数
+     */
     public void moveRegionX(Sheet sheet, int firstRow, int rowNum, int firstCell, int cellNum){
         for (int i = 0; i < rowNum; i++) {
             int rowIndex = firstRow + i;
@@ -1180,6 +1258,14 @@ public class ExcelExport {
         }
     }
 
+    /**
+     * 清除区域内样式
+     * @param sheet 表
+     * @param firstRow 开始行数
+     * @param rowNum 多少行
+     * @param firstCell 开始列数
+     * @param cellNum 多少列
+     */
     public void clearRegionStyle(Sheet sheet, int firstRow, int rowNum, int firstCell, int cellNum){
         for (int i = 0; i < rowNum; i++) {
             Row row = sheet.getRow(firstRow + i);
@@ -1190,6 +1276,15 @@ public class ExcelExport {
         }
     }
 
+    /**
+     * 获取区域样式
+     * @param sheet 表
+     * @param firstRow 开始行数
+     * @param rowNum 多少行
+     * @param firstCell 开始列数
+     * @param cellNum 多少列
+     * @return 区域内每个单元格的样式
+     */
     public List<List<CellStyle>> getRegionStyle(Sheet sheet, int firstRow, int rowNum, int firstCell, int cellNum){
         List<List<CellStyle>> regionStyle = new ArrayList<>();
         for(int i = 0; i < rowNum; i++){
@@ -1210,6 +1305,13 @@ public class ExcelExport {
         return regionStyle;
     }
 
+    /**
+     * 设置区域样式
+     * @param sheet 表
+     * @param regionStyle 每个单元格的样式
+     * @param firstRow 开始行
+     * @param firstCell 开始列
+     */
     public void setRegionStyle(Sheet sheet, List<List<CellStyle>> regionStyle, int firstRow, int firstCell){
         for (int i = 0; i < regionStyle.size(); i++) {
             List<CellStyle> styles = regionStyle.get(i);
@@ -1227,6 +1329,13 @@ public class ExcelExport {
         }
     }
 
+    /**
+     * 获取区域行高
+     * @param sheet 表
+     * @param firstRow 开始行
+     * @param rowNum 行数
+     * @return 区域内每行的高
+     */
     public List<Short> getRegionRowHeight(Sheet sheet, int firstRow, int rowNum){
         List<Short> rowHeights = new ArrayList<>();
         for (int i = 0; i < rowNum; i++) {
@@ -1240,6 +1349,12 @@ public class ExcelExport {
         return rowHeights;
     }
 
+    /**
+     * 设置区域行高
+     * @param sheet 表
+     * @param rowHeights 要设置的行高
+     * @param firstRow 开始行
+     */
     public void setRegionRowHeight(Sheet sheet, List<Short> rowHeights, int firstRow){
         for (int i = 0; i < rowHeights.size(); i++) {
             Row row = sheet.getRow(firstRow + i);
@@ -1247,6 +1362,13 @@ public class ExcelExport {
         }
     }
 
+    /**
+     * 获取区域列宽
+     * @param sheet 表
+     * @param firstColumn 开始列号
+     * @param columnNum 列数
+     * @return 区域内每列宽
+     */
     public List<Integer> getRegionCellWidth(Sheet sheet, int firstColumn, int columnNum){
         List<Integer> columnWidths = new ArrayList<>();
         for (int i = 0; i < columnNum; i++) {
@@ -1255,6 +1377,12 @@ public class ExcelExport {
         return columnWidths;
     }
 
+    /**
+     * 设置区域列宽
+     * @param sheet 表
+     * @param columnWidths 要设置的列宽
+     * @param firstCellIndex 开始列号
+     */
     public void setRegionCellWidth(Sheet sheet, List<Integer> columnWidths, int firstCellIndex) {
         for (int i = 0; i < columnWidths.size(); i++) {
             sheet.setColumnWidth(firstCellIndex + i, columnWidths.get(i));
@@ -1263,7 +1391,7 @@ public class ExcelExport {
 
     /**
      * 上下移动合并单元格
-     * @param sheet
+     * @param sheet 表
      * @param mr 合并单元格信息
      * @param time 移动行数
      */
@@ -1374,18 +1502,20 @@ public class ExcelExport {
     }
 
     /**
+     * 判断对象是数组
      * 判断值是集合或者数组
-     * @param o
-     * @return
+     * @param o 要判断的对象
+     * @return 是否是数组
      */
     public boolean isArray(Object o){
         return o instanceof Map || o instanceof List || o.getClass().isArray();
     }
 
     /**
+     * 判断对象不是数组
      * 判断值不是集合或者数组
-     * @param o
-     * @return
+     * @param o 要判断的对象
+     * @return 是否不是数组
      */
     public boolean isNoArray(Object o){
         return !isArray(o);
@@ -1393,10 +1523,10 @@ public class ExcelExport {
 
     /**
      * 判断指定的单元格是否是合并单元格
-     * @param sheet
+     * @param sheet 表
      * @param row 行下标
      * @param column 列下标
-     * @return
+     * @return 合并单元格信息
      */
     public static MergedResult isMergedRegion(Sheet sheet, int row, int column) {
         MergedResult mergedResult = new MergedResult();
@@ -1431,7 +1561,7 @@ public class ExcelExport {
 
     /**
      * 拆分合并单元格
-     * @param sheet
+     * @param sheet 表
      * @param row 所在行
      * @param column 所在列
      */
