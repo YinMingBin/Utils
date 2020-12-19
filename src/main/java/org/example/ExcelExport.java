@@ -1142,7 +1142,9 @@ public class ExcelExport {
                 if(mergedRegion.isMerged()){
                     moveMergeCellY(sheet, mergedRegion, moveNum);
                     newRow = sheet.getRow(rowIndex + time);
-                    newCell = newRow.getCell(cellIndex);
+                    if(newRow != null) {
+                        newCell = newRow.getCell(cellIndex);
+                    }
                     break;
                 }else if(newCell != null && !StringUtils.isEmpty(newCell.toString())){
                     moveCellY(sheet, rindex, cellIndex, moveNum);
@@ -1160,8 +1162,10 @@ public class ExcelExport {
         if (newRow != null) {
             newRow.setHeight(row.getHeight());
         }
-        cell.setCellStyle(null);
-        cell.setCellValue("");
+        if(cell != null) {
+            cell.setCellStyle(null);
+            cell.setCellValue("");
+        }
     }
 
     /**
@@ -1452,26 +1456,30 @@ public class ExcelExport {
         boolean[] isSkip = new boolean[cellNum + 1];
         int rowIndex = firstRow + 1;
         Row row = sheet.getRow(rowIndex);
-        for (int j = 0; j < cellNum; j++) {
-            if(isSkip[j]){ continue;}
-            int cellIndex = firstCell + j;
-            Cell cell = row.getCell(cellIndex);
-            boolean b = moveYCellSite(sheet, rowIndex, cellIndex, rowNum);
-            if(b){
-                Row row1 = sheet.getRow(rowIndex + rowNum);
-                row1.setHeight(row.getHeight());
-            }
-            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
-            if(mergedRegion.isMerged()){
-                moveMergeCellY(sheet, mergedRegion, rowNum);
-                for (int i1 = 0; i1 < mergedRegion.getColumnMergeNum(); i1++) {
-                    isSkip[j + i1] = true;
+        if(row != null) {
+            for (int j = 0; j < cellNum; j++) {
+                if (isSkip[j]) {
+                    continue;
                 }
-            }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
-                moveCellY(sheet, rowIndex, cellIndex, rowNum);
-                isSkip[j] = true;
-            }else if(cell == null){
-                row.createCell(cellIndex);
+                int cellIndex = firstCell + j;
+                Cell cell = row.getCell(cellIndex);
+                boolean b = moveYCellSite(sheet, rowIndex, cellIndex, rowNum);
+                if (b) {
+                    Row row1 = sheet.getRow(rowIndex + rowNum);
+                    row1.setHeight(row.getHeight());
+                }
+                MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
+                if (mergedRegion.isMerged()) {
+                    moveMergeCellY(sheet, mergedRegion, rowNum);
+                    for (int i1 = 0; i1 < mergedRegion.getColumnMergeNum(); i1++) {
+                        isSkip[Math.min(isSkip.length - 1, j + i1)] = true;
+                    }
+                } else if (cell != null && !StringUtils.isEmpty(cell.toString())) {
+                    moveCellY(sheet, rowIndex, cellIndex, rowNum);
+                    isSkip[j] = true;
+                } else if (cell == null) {
+                    row.createCell(cellIndex);
+                }
             }
         }
     }
@@ -1557,6 +1565,37 @@ public class ExcelExport {
         }
         mergedResult.setMerged(isMerged);
         return mergedResult;
+    }
+
+    /**
+     * 拆分区域内所有合并单元格
+     * @param sheet 表
+     * @param firstRow 开始行
+     * @param lastRow 结束行
+     * @param firstColumn 开始列
+     * @param lastColumn 结束列
+     */
+    public static void splitMergedRegion(Sheet sheet, int firstRow, int lastRow, int firstColumn, int lastColumn){
+        //获取合并单元格的数量
+        int sheetMergeCount = sheet.getNumMergedRegions();
+        for (int i = 0; i < sheetMergeCount; i++) {
+            // 获取合并后的单元格
+            CellRangeAddress range = sheet.getMergedRegion(i);
+            if(range != null) {
+                int stateRow = range.getFirstRow();
+                int endRow = range.getLastRow();
+                int stateColumn = range.getFirstColumn();
+                int endColumn = range.getLastColumn();
+                boolean inStateRow = stateRow >= firstRow && stateRow <= lastRow;
+                boolean inEndRow = endRow >= firstRow && endRow <= lastRow;
+                boolean inStateColumn = stateColumn >= firstColumn && stateColumn <= lastColumn;
+                boolean inEndColumn = endColumn >= firstColumn && endColumn <= lastColumn;
+                if ((inStateRow && inStateColumn) || (inEndRow && inStateColumn)// 左上角 右上角
+                        || (inStateRow && inEndColumn) || (inEndRow && inEndColumn)) {//左下角 右下角
+                    sheet.removeMergedRegion(i--);
+                }
+            }
+        }
     }
 
     /**
