@@ -1142,9 +1142,10 @@ public class ExcelExport {
                 if(mergedRegion.isMerged()){
                     moveMergeCellY(sheet, mergedRegion, moveNum);
                     newRow = sheet.getRow(rowIndex + time);
-                    if(newRow != null) {
-                        newCell = newRow.getCell(cellIndex);
+                    if(newRow == null){
+                        newRow = sheet.createRow(rowIndex + time);
                     }
+                    newCell = newRow.getCell(cellIndex);
                     break;
                 }else if(newCell != null && !StringUtils.isEmpty(newCell.toString())){
                     moveCellY(sheet, rindex, cellIndex, moveNum);
@@ -1427,12 +1428,12 @@ public class ExcelExport {
 
         int firstRowIndex = firstRow + time;
         row = sheet.getRow(firstRowIndex);
-        if(row != null) {
-            Cell newCell = row.getCell(firstColumn);
-            if (newCell == null) {
-                newCell = row.createCell(firstColumn);
-            }
-            newCell.setCellValue(value);
+        if(row == null){
+            row = sheet.createRow(firstRowIndex);
+        }
+        Cell newCell = row.getCell(firstColumn);
+        if (newCell == null) {
+            newCell = row.createCell(firstColumn);
         }
 
         setRegionStyle(sheet, regionStyle, firstRowIndex, firstColumn);
