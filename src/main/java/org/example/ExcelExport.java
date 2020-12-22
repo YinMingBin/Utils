@@ -1435,6 +1435,7 @@ public class ExcelExport {
         if (newCell == null) {
             newCell = row.createCell(firstColumn);
         }
+        newCell.setCellValue(value);
 
         setRegionStyle(sheet, regionStyle, firstRowIndex, firstColumn);
 
