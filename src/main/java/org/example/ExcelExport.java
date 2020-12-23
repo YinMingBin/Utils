@@ -265,7 +265,7 @@ public class ExcelExport {
                                 String str = split[splitLen - 1];
                                 CellInfo cellInfo = new CellInfo(cellValue.substring(0, initially), str, subEnding, i, j);
                                 cellInfo.setCellStyle(cell.getCellStyle());
-                                cellInfo.setRowHeigth(row.getHeight());
+                                cellInfo.setRowHeight(row.getHeight());
                                 cellInfo.setColumnWidth(sheet.getColumnWidth(j));
                                 cellInfo.setMergedResult(isMergedRegion(sheet, i, j));
 
@@ -721,7 +721,7 @@ public class ExcelExport {
                     Cell cell = setCellValueY(value, sheet, rowIndexI, cellIndex);
                     setCellStyle(cell, cellInfo.getCellStyle());
                     Row row = sheet.getRow(rowIndexI);
-                    row.setHeight(cellInfo.getRowHeigth());
+                    row.setHeight(cellInfo.getRowHeight());
                 }
             } else {
                 int size = eachTransferStop(key, value, sheet, rowIndexI, cellIndex, index);
@@ -828,7 +828,7 @@ public class ExcelExport {
                     if (cellInfo != null) {
                         setCellStyle(cell, cellInfo.getCellStyle());
                         Row row = sheet.getRow(rowIndexI);
-                        row.setHeight(cellInfo.getRowHeigth());
+                        row.setHeight(cellInfo.getRowHeight());
                     }
                 }
             }else {
@@ -912,7 +912,7 @@ public class ExcelExport {
                 if (cellInfo != null) {
                     setCellStyle(cell, cellInfo.getCellStyle());
                     Row row = sheet.getRow(rowIndex);
-                    row.setHeight(cellInfo.getRowHeigth());
+                    row.setHeight(cellInfo.getRowHeight());
                 }
             }else {
                 int size = eachTransferStop(name, value, sheet, rowIndex, cellIndex, i);
@@ -985,7 +985,7 @@ public class ExcelExport {
             if(row == null){
                 row = sheet.createRow(rowSite);
             }
-            row.setHeight(cellInfo.getRowHeigth());
+            row.setHeight(cellInfo.getRowHeight());
             return true;
         }
         return false;
