@@ -867,9 +867,9 @@ public class ExcelExport {
                 if(isAddTo) {
                     value = initially + value + ending;
                 }
-                Cell Cell = setCellValueX(value, sheet, rowIndex, cellIndex, dataLen - i);
+                Cell cell = setCellValueX(value, sheet, rowIndex, cellIndex, dataLen - i);
                 if (cellInfo != null) {
-                    setCellStyle(Cell, cellInfo.getCellStyle());
+                    setCellStyle(cell, cellInfo.getCellStyle());
                     cellInfo.setColumnWidth(cellInfo.getColumnWidth());
                 }
             }else {
@@ -908,9 +908,9 @@ public class ExcelExport {
                 if(isAddTo) {
                     value = initially + value + ending;
                 }
-                Cell Cell = setCellValueY(value, sheet, rowIndex, cellIndex, dataLen - i);
+                Cell cell = setCellValueY(value, sheet, rowIndex, cellIndex, dataLen - i);
                 if (cellInfo != null) {
-                    setCellStyle(Cell, cellInfo.getCellStyle());
+                    setCellStyle(cell, cellInfo.getCellStyle());
                     Row row = sheet.getRow(rowIndex);
                     row.setHeight(cellInfo.getRowHeigth());
                 }
