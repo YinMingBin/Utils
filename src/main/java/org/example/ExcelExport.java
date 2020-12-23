@@ -1467,8 +1467,11 @@ public class ExcelExport {
                 boolean inEndRow = endRow >= firstRow && endRow <= lastRow;
                 boolean inStateColumn = stateColumn >= firstColumn && stateColumn <= lastColumn;
                 boolean inEndColumn = endColumn >= firstColumn && endColumn <= lastColumn;
-                if ((inStateRow && inStateColumn) || (inEndRow && inStateColumn)// 左上角 右上角
-                        || (inStateRow && inEndColumn) || (inEndRow && inEndColumn)) {//左下角 右下角
+                boolean topLeft = (inStateRow && inStateColumn);// 左上角
+                boolean topRight = (inEndRow && inStateColumn);// 右上角
+                boolean belowLeft = (inStateRow && inEndColumn);// 左下角
+                boolean belowRight = (inEndRow && inEndColumn);// 右下角
+                if (topLeft || topRight || belowLeft || belowRight) {//左下角 右下角
                     sheet.removeMergedRegion(i--);
                 }
             }
