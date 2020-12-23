@@ -14,6 +14,8 @@ public class Test {
         ExcelExport export = new ExcelExport();
         export.excelAdaptive(new HSSFWorkbook(), new HashMap<>(1));
         Workbook sheets = ExcelExport.excelAdaptive("", new HashMap<>(1));
+        ExcelExport.splitMergedRegion(null, 0, 0, 0, 0);
+        ExcelExport.copySheet(null, null);
         export.empty();
     }
 

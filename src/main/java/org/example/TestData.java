@@ -47,12 +47,12 @@ public class TestData {
         }
         datas.put("listMap", listMap);
 
-        Workbook wb = ExcelExport.pageExcel("test.xlsx", datas, 5, 6);
+//        Workbook wb = ExcelExport.pageExcel("test.xlsx", datas, 5, 6);
 
         File file = new File("D:/A临时/excel/test.xlsx");
         file.createNewFile();
         FileOutputStream os = new FileOutputStream(file);
-        wb.write(os);
+//        wb.write(os);
         os.flush();
         os.close();
     }

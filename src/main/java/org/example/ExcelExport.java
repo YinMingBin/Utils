@@ -10,7 +10,6 @@ import org.apache.poi.xssf.usermodel.XSSFClientAnchor;
 import org.apache.poi.xssf.usermodel.XSSFDrawing;
 import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
-import org.springframework.beans.BeanUtils;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
@@ -33,146 +32,17 @@ public class ExcelExport {
     private final String x = "X-";
     private String suffix = "";
 
-    public void excelAdaptive(Workbook wb, Map<String, Object> datas) {
+    public void excelAdaptive(Workbook wb, Map<String, Object> dataMap) {
         this.wb = wb;
-        excel(datas);
+        excel(dataMap);
         adaptiveColumn(wb, 255);
     }
 
-    public static Workbook excelAdaptive(String fileName, Map<String, Object> datas) throws IOException {
+    public static Workbook excelAdaptive(String fileName, Map<String, Object> dataMap) throws IOException {
         ExcelExport excelExport = new ExcelExport();
-        Workbook wb = excelExport.excel(fileName, datas);
+        Workbook wb = excelExport.excel(fileName, dataMap);
         ExcelExport.adaptiveColumn(wb, 255);
         return wb;
-    }
-
-    public static Workbook pageExcel(String fileName, Map<String, Object> datas, int xIndex, int yIndex) throws IOException {
-        ExcelExport export = new ExcelExport();
-        export.start(fileName);
-
-        Sheet sheetAt = export.wb.getSheetAt(0);
-        export.initialize(sheetAt, datas);
-        export.setBasicData(sheetAt, datas);
-
-        Map<String, CellInfo> cellInfo = new HashMap<>(export.cellInfo);
-        Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>(export.arrayCellInfo);
-        Map<String, CellInfo> inUse = new HashMap<>(export.inUse);
-        Map<Integer, String[]> siteName = new HashMap<>(export.siteName);
-
-        Map<String, Object> dataY = new HashMap<>();
-        Map<String, Object> dataX = new HashMap<>();
-        datas.forEach((key, value) -> {
-            dataY.put(key, value);
-            dataX.put(key, value);
-        });
-
-        while(!CollectionUtils.isEmpty(dataY)) {
-            Sheet sheet = export.wb.createSheet();
-            Map<String, Object> map = export.page(dataY, yIndex, false);
-            export.copySheet(sheetAt, sheet);
-            export.setAllArray(sheet, map);
-
-            export.cellInfo = cellInfo;
-            export.arrayCellInfo = arrayCellInfo;
-            export.inUse = inUse;
-            export.siteName = siteName;
-        }
-
-        while(!CollectionUtils.isEmpty(dataX)) {
-            Sheet sheet = export.wb.createSheet();
-            BeanUtils.copyProperties(dataX, datas);
-            Map<String, Object> map = export.page(dataX, xIndex, true);
-            export.copySheet(sheetAt, sheet);
-            export.setAllArray(sheet, map);
-
-            export.cellInfo = cellInfo;
-            export.arrayCellInfo = arrayCellInfo;
-            export.inUse = inUse;
-            export.siteName = siteName;
-        }
-
-        return export.wb;
-    }
-
-    public Map<String, Object> page(Map<String, Object> datas, int yIndex, boolean isDelX){
-        Map<String, Object> dataMap = new HashMap<>();
-        this.arrayCellInfo.forEach((key, value) -> {
-            Object o = datas.get(key);
-            boolean isDel = key.contains(this.x);
-            isDel = !isDelX || isDel;
-            if(o instanceof List){
-                List<Object> list = (List<Object>) o;
-                if(CollectionUtils.isEmpty(list)){
-                    CellInfo cellInfo = value.get(key);
-                    Integer rowIndex = cellInfo.getRowIndex();
-                    int num = yIndex - rowIndex;
-                    List<Object> objects = pageList(num, value, list, isDel);
-                    dataMap.put(key, objects);
-                }
-            }else if(o.getClass().isArray()){
-                Object[] objs = (Object[]) o;
-            }else if (o instanceof Map){
-                Map<String, Object> list = (Map<String, Object>) o;
-                if(CollectionUtils.isEmpty(list)){
-                    Map<Object, Object> objects = pageMap(yIndex, value, list, isDel);
-                    dataMap.put(key, objects);
-                }
-            }
-        });
-        return dataMap;
-    }
-
-    public void pageTransfer(int index, Map<String, CellInfo> cellInfos, Object value, boolean isDel){
-        if(value instanceof List){
-            pageList(index, cellInfos, (List<Object>) value, isDel);
-        }else if(value.getClass().isArray()){
-        }else if(value instanceof Map){
-            pageMap(index, cellInfos, (Map<String, Object>) value, isDel);
-        }
-    }
-
-    public List<Object> pageList(int index, Map<String, CellInfo> cellInfos, List<Object> dataList, boolean isDel){
-        if(!CollectionUtils.isEmpty(dataList)) {
-            Object o = dataList.get(0);
-            if (isArray(o)) {
-                pageTransfer(index, cellInfos, o, isDel);
-            }else{
-                int size = Math.min(dataList.size(), index);
-                List<Object> objects = dataList.subList(0, size);
-                List<Object> collect = new ArrayList<>(objects);
-                if(isDel){
-                    objects.clear();
-                }
-                return collect;
-            }
-        }
-        return new ArrayList<>();
-    }
-
-    public Map<Object, Object> pageMap(int index, Map<String, CellInfo> cellInfos, Map<String, Object> dataMap, boolean isDel){
-        if(!CollectionUtils.isEmpty(dataMap)) {
-            Map<Object, Object> objs = new HashMap<>();
-            int i = 0;
-            for(Map.Entry<String, Object> map : dataMap.entrySet()){
-                String key = map.getKey();
-                Object value = map.getValue();
-                CellInfo cellInfo = cellInfos.get(key);
-                Integer rowIndex = cellInfo.getRowIndex();
-                int num = index - rowIndex;
-                if(i++ < num) {
-                    if (isArray(value)) {
-                        pageTransfer(index, cellInfos, value, isDel);
-                    } else {
-                        objs.put(key, value);
-                        if (isDel) {
-                            dataMap.remove(key);
-                        }
-                    }
-                }
-            }
-            return objs;
-        }
-        return new HashMap<>();
     }
 
     public void excel(Map<String, Object> dataMap) {
@@ -259,7 +129,7 @@ public class ExcelExport {
      * @param sheet 被拷贝表
      * @param newSheet 拷贝目地表
      */
-    public void copySheet(Sheet sheet, Sheet newSheet){
+    public static void copySheet(Sheet sheet, Sheet newSheet){
         int firstRowNum = sheet.getFirstRowNum();
         int lastRowNum = sheet.getLastRowNum();
         int maxColumnNum = 0;
@@ -307,7 +177,7 @@ public class ExcelExport {
      * @param row 被拷贝行
      * @param newRow 拷贝目地行
      */
-    public void copyRow(Row row, Row newRow){
+    public static void copyRow(Row row, Row newRow){
         short height = row.getHeight();
         newRow.setHeight(height);
         CellStyle rowStyle = row.getRowStyle();
@@ -341,7 +211,7 @@ public class ExcelExport {
      * @param cell 被拷贝单元格
      * @param newCell 拷贝目地单元格
      */
-    public void copyCell(Cell cell, Cell newCell){
+    public static void copyCell(Cell cell, Cell newCell){
         if(cell == null || newCell == null){return;}
         CellType cellTypeEnum = cell.getCellTypeEnum();
         if(cellTypeEnum == CellType.STRING){
@@ -369,7 +239,6 @@ public class ExcelExport {
      * @param dataMap 数据
      */
     public void initialize(Sheet sheet, Map<String, Object> dataMap){
-
         int firstRowNum = sheet.getFirstRowNum();
         int lastRowNum = sheet.getLastRowNum();
         for(int i = firstRowNum; i <= lastRowNum; i++){
@@ -403,7 +272,7 @@ public class ExcelExport {
                                 if (isArray(o)) {
                                     Map<String, CellInfo> cellInfos = this.arrayCellInfo.get(s);
                                     if (CollectionUtils.isEmpty(cellInfos)) {
-                                        cellInfos = new HashMap<>();
+                                        cellInfos = new HashMap<>(5);
                                     }
                                     cellInfos.put(str, cellInfo);
                                     this.siteName.put((i * 100 + j), new String[]{s,str});
@@ -425,11 +294,11 @@ public class ExcelExport {
     /**
      * 所有直接赋值单元格赋值
      * @param sheet 表
-     * @param datas 数据
+     * @param dataMap 数据
      */
-    public void setBasicData(Sheet sheet, Map<String, Object> datas){
+    public void setBasicData(Sheet sheet, Map<String, Object> dataMap){
         cellInfo.forEach((key, value) -> {
-            Object o = datas.get(key);
+            Object o = dataMap.get(key);
             Integer rowIndex = value.getRowIndex();
             Row row = sheet.getRow(rowIndex);
             Integer cellIndex = value.getCellIndex();
@@ -505,16 +374,16 @@ public class ExcelExport {
     /**
      * 所有遍历赋值单元格赋值
      * @param sheet 表
-     * @param datas 数据
+     * @param dataMap 数据
      */
-    public void setAllArray(Sheet sheet, Map<String, Object> datas){
-        String[] order = (String[]) datas.get(ORDER);
+    public void setAllArray(Sheet sheet, Map<String, Object> dataMap){
+        String[] order = (String[]) dataMap.get(ORDER);
         if(order != null){
             for (String key : order) {
-                Object o = datas.get(key);
+                Object o = dataMap.get(key);
                 this.inUse = arrayCellInfo.get(key);
                 if(this.inUse == null){
-                    initialize(sheet, datas);
+                    initialize(sheet, dataMap);
                     this.inUse = arrayCellInfo.get(key);
                 }
                 if(this.inUse != null){
@@ -528,7 +397,7 @@ public class ExcelExport {
             }
         }else {
             arrayCellInfo.forEach((key, value) -> {
-                Object o = datas.get(key);
+                Object o = dataMap.get(key);
                 this.inUse = value;
                 if(this.inUse != null){
                     CellInfo cellInfo = this.inUse.get(key);
@@ -705,22 +574,28 @@ public class ExcelExport {
             int size;
             if (name.contains(this.x)) {
                 if (data instanceof Map) {
-                    setXMapData((Map<String, Object>) data, sheet, index);
-                    size = ((Map) data).size();
+                    Map<String, Object> dataMap = new HashMap<>(10);
+                    ((Map<?, ?>) data).forEach((key, value) -> dataMap.put(key.toString(), value));
+                    setXMapData(dataMap, sheet, index);
+                    size = dataMap.size();
                 } else if (data instanceof List) {
-                    setXListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
-                    size = ((List<Object>) data).size();
+                    List<Object> dataList = new ArrayList<>(((List<?>) data));
+                    setXListData(name, dataList, sheet, rowIndex, cellIndex);
+                    size = dataList.size();
                 } else {
                     setXArrayData(name, (Object[]) data, sheet, rowIndex, cellIndex);
                     size = ((Object[]) data).length;
                 }
             } else {
                 if (data instanceof Map) {
-                    setYMapData((Map<String, Object>) data, sheet, index);
-                    size = ((Map) data).size();
+                    Map<String, Object> dataMap = new HashMap<>(10);
+                    ((Map<?, ?>) data).forEach((key, value) -> dataMap.put(key.toString(), value));
+                    setYMapData(dataMap, sheet, index);
+                    size = dataMap.size();
                 } else if (data instanceof List) {
-                    setYListData(name, (List<Object>) data, sheet, rowIndex, cellIndex);
-                    size = ((List<Object>) data).size();
+                    List<Object> dataList = new ArrayList<>(((List<?>) data));
+                    setYListData(name, dataList, sheet, rowIndex, cellIndex);
+                    size = dataList.size();
                 } else {
                     setYArrayData(name, (Object[]) data, sheet, rowIndex, cellIndex);
                     size = ((Object[]) data).length;
@@ -737,22 +612,22 @@ public class ExcelExport {
 
     /**
      * Map集合向右赋值
-     * @param datas 赋值数据
+     * @param dataMap 赋值数据
      * @param sheet 表
      * @param index 初始列偏移量  >-9999初始列+index,<=-9999初始列根据数据数量进行累加
      */
-    public void setXMapData(Map<String, Object> datas, Sheet sheet, int index){
+    public void setXMapData(Map<String, Object> dataMap, Sheet sheet, int index){
         int i = 0;
-        String[] priority = (String[]) datas.get(ORDER);
+        String[] priority = (String[]) dataMap.get(ORDER);
         if(priority != null){
             for (String key : priority) {
-                Object data = datas.get(key);
+                Object data = dataMap.get(key);
                 if(data != null) {
                     mapDataX(sheet, key, data, (index > -9999 ? index : i++));
                 }
             }
         }else {
-            for (Map.Entry<String, Object> data : datas.entrySet()) {
+            for (Map.Entry<String, Object> data : dataMap.entrySet()) {
                 mapDataX(sheet, data.getKey(), data.getValue(), (index > -9999 ? index : i++));
             }
         }
@@ -801,21 +676,21 @@ public class ExcelExport {
 
     /**
      * Map集合向下赋值
-     * @param datas 赋值数据
+     * @param dataMap 赋值数据
      * @param sheet 表
      * @param index 初始行偏移量  >-9999初始行+index,<=-9999根据数据数量进行累加
      */
-    public void setYMapData(Map<String, Object> datas, Sheet sheet, int index){
+    public void setYMapData(Map<String, Object> dataMap, Sheet sheet, int index){
         int i = 0;
-        String[] priority = (String[]) datas.get(ORDER);
+        String[] priority = (String[]) dataMap.get(ORDER);
         if(priority != null){
             for (String key : priority) {
-                Object data = datas.get(key);
+                Object data = dataMap.get(key);
                 mapDataY(sheet, key, data, (index > -9999 ? index : i));
-                datas.remove(key);
+                dataMap.remove(key);
             }
         }else {
-            for (Map.Entry<String, Object> data : datas.entrySet()) {
+            for (Map.Entry<String, Object> data : dataMap.entrySet()) {
                 mapDataY(sheet, data.getKey(), data.getValue(), (index > -9999 ? index : i));
             }
         }
@@ -865,12 +740,12 @@ public class ExcelExport {
     /**
      * List集合向右赋值
      * @param name 赋值单元格名称
-     * @param datas 赋值数据
+     * @param dataMap 赋值数据
      * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
-    public void setXListData(String name, List<Object> datas, Sheet sheet, int rowIndex, int cellIndex){
+    public void setXListData(String name, List<Object> dataMap, Sheet sheet, int rowIndex, int cellIndex){
         CellInfo cellInfo = this.inUse.get(name);
         MergedResult mergedResult = null;
         boolean merged = false;
@@ -883,9 +758,9 @@ public class ExcelExport {
             ending = cellInfo.getEnding();
         }
         boolean isAdTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
-        int dataSize = datas.size();
+        int dataSize = dataMap.size();
         for (int i = 0; i < dataSize; i++) {
-            Object value = datas.get(i);
+            Object value = dataMap.get(i);
             int cellIndexI = cellIndex + i;
             if(isNoArray(value)){
                 if(i!=0){
@@ -916,12 +791,12 @@ public class ExcelExport {
     /**
      * List集合向下赋值
      * @param name 赋值单元格名称
-     * @param datas 赋值数据
+     * @param dataMap 赋值数据
      * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
-    public void setYListData(String name, List<Object> datas, Sheet sheet, int rowIndex, int cellIndex){
+    public void setYListData(String name, List<Object> dataMap, Sheet sheet, int rowIndex, int cellIndex){
         CellInfo cellInfo = this.inUse.get(name);
         MergedResult mergedResult = null;
         boolean merged = false;
@@ -934,9 +809,9 @@ public class ExcelExport {
             ending = cellInfo.getEnding();
         }
         boolean isAddTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
-        int dataSize = datas.size();
+        int dataSize = dataMap.size();
         for (int i = 0; i < dataSize; i++) {
-            Object value = datas.get(i);
+            Object value = dataMap.get(i);
             int rowIndexI = rowIndex + i;
             if(isNoArray(value)){
                 if(i!=0){
@@ -968,12 +843,12 @@ public class ExcelExport {
     /**
      * 数组类型向右赋值
      * @param name 赋值单元格名称
-     * @param datas 赋值数据
+     * @param dataMap 赋值数据
      * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
-    public void setXArrayData(String name, Object[] datas, Sheet sheet, int rowIndex, int cellIndex){
+    public void setXArrayData(String name, Object[] dataMap, Sheet sheet, int rowIndex, int cellIndex){
         CellInfo cellInfo = this.inUse.get(name);
         String initially = null;
         String ending = null;
@@ -982,9 +857,9 @@ public class ExcelExport {
             ending = cellInfo.getEnding();
         }
         boolean isAddTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
-        int dataLen = datas.length;
+        int dataLen = dataMap.length;
         for (int i = 0; i < dataLen; i++, cellIndex++) {
-            Object value = datas[i];
+            Object value = dataMap[i];
             if(isNoArray(value)){
                 if(i!=0){
                     moveXCellSite(rowIndex, cellIndex, 1);
@@ -1009,12 +884,12 @@ public class ExcelExport {
     /**
      * 数组类型向下赋值
      * @param name 赋值单元格名称
-     * @param datas 赋值数据
+     * @param dataMap 赋值数据
      * @param sheet 表
      * @param rowIndex 初始所在行
      * @param cellIndex 初始所在列
      */
-    public void setYArrayData(String name, Object[] datas, Sheet sheet, int rowIndex, int cellIndex){
+    public void setYArrayData(String name, Object[] dataMap, Sheet sheet, int rowIndex, int cellIndex){
         CellInfo cellInfo = this.inUse.get(name);
         String initially = null;
         String ending = null;
@@ -1023,9 +898,9 @@ public class ExcelExport {
             ending = cellInfo.getEnding();
         }
         boolean isAddTo = !StringUtils.isEmpty(initially) || !StringUtils.isEmpty(ending);
-        int dataLen = datas.length;
+        int dataLen = dataMap.length;
         for (int i = 0; i < dataLen; i++, rowIndex++) {
-            Object value = datas[i];
+            Object value = dataMap[i];
             if(isNoArray(value)){
                 if(i!=0){
                     moveXCellSite(rowIndex, cellIndex, 1);
@@ -1073,20 +948,20 @@ public class ExcelExport {
         Cell cell = row.getCell(cellIndex);
         Cell newCell = null;
         for (int i = 1; i <= time; i++) {
-            int cindex = cellIndex + i;
-            newCell = row.getCell(cindex);
+            int cIndex = cellIndex + i;
+            newCell = row.getCell(cIndex);
             int moveNum = time - i + 1;
-            moveXCellSite(rowIndex, cindex, moveNum);
-            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cindex);
+            moveXCellSite(rowIndex, cIndex, moveNum);
+            MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cIndex);
             if(mergedRegion.isMerged()){
                 moveMergeCellX(sheet, mergedRegion, moveNum);
                 newCell = row.getCell(cellIndex + time);
             }else if(newCell != null && !StringUtils.isEmpty(newCell.toString())){
-                moveCellX(sheet, rowIndex, cindex, moveNum);
+                moveCellX(sheet, rowIndex, cIndex, moveNum);
                 newCell = row.getCell(cellIndex + time);
                 break;
             }else if(newCell == null){
-                newCell = row.createCell(cindex);
+                newCell = row.createCell(cIndex);
             }
         }
         copyCell(cell, newCell);
@@ -1129,16 +1004,16 @@ public class ExcelExport {
         Cell cell = row.getCell(cellIndex);
         Cell newCell = null;
         for (int i = 1; i <= time ; i++) {
-            int rindex = rowIndex + i;
-            newRow = sheet.getRow(rindex);
+            int rIndex = rowIndex + i;
+            newRow = sheet.getRow(rIndex);
             int moveNum = time - i + 1;
-            moveYCellSite(sheet, rindex, cellIndex, moveNum);
+            moveYCellSite(sheet, rIndex, cellIndex, moveNum);
             if(newRow == null){
-                newRow = sheet.createRow(rindex);
+                newRow = sheet.createRow(rIndex);
                 newCell = newRow.createCell(cellIndex);
             }else{
                 newCell = newRow.getCell(cellIndex);
-                MergedResult mergedRegion = isMergedRegion(sheet, rindex, cellIndex);
+                MergedResult mergedRegion = isMergedRegion(sheet, rIndex, cellIndex);
                 if(mergedRegion.isMerged()){
                     moveMergeCellY(sheet, mergedRegion, moveNum);
                     newRow = sheet.getRow(rowIndex + time);
@@ -1148,7 +1023,7 @@ public class ExcelExport {
                     newCell = newRow.getCell(cellIndex);
                     break;
                 }else if(newCell != null && !StringUtils.isEmpty(newCell.toString())){
-                    moveCellY(sheet, rindex, cellIndex, moveNum);
+                    moveCellY(sheet, rIndex, cellIndex, moveNum);
                     newRow = sheet.getRow(rowIndex + time);
                     newCell = newRow.getCell(cellIndex);
                     break;
@@ -1623,4 +1498,5 @@ public class ExcelExport {
             }
         }
     }
+
 }
