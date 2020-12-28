@@ -815,7 +815,7 @@ public class ExcelExport {
             int rowIndexI = rowIndex + i;
             if(isNoArray(value)){
                 if(i!=0){
-                    moveCellSiteX(rowIndexI, cellIndex, 1);
+                    moveCellSiteY(sheet, rowIndexI, cellIndex, 1);
                 }
                 if(isAddTo) {
                     value = initially + value + ending;
@@ -933,6 +933,12 @@ public class ExcelExport {
             cellInfo.setCellIndex(cellSite);
             this.siteName.remove(site);
             this.siteName.put((rowIndex * 100 + cellSite), name);
+            MergedResult mergedResult = cellInfo.getMergedResult();
+            if(mergedResult != null && mergedResult.isMerged()){
+                mergedResult.setColumnIndex(cellSite);
+                mergedResult.setFirstColumn(cellSite);
+                mergedResult.setLastColumn(mergedResult.getLastColumn() + moveNum);
+            }
         }
     }
 
@@ -986,6 +992,12 @@ public class ExcelExport {
                 row = sheet.createRow(rowSite);
             }
             row.setHeight(cellInfo.getRowHeight());
+            MergedResult mergedResult = cellInfo.getMergedResult();
+            if(mergedResult != null && mergedResult.isMerged()){
+                mergedResult.setRowIndex(rowSite);
+                mergedResult.setFirstRow(rowSite);
+                mergedResult.setLastRow(mergedResult.getLastRow() + moveNum);
+            }
             return true;
         }
         return false;
@@ -1119,15 +1131,14 @@ public class ExcelExport {
                 Cell cell = row.getCell(cellIndex);
                 int moveNum = cellNum - j + 1;
                 boolean isEnd = false;
-                moveCellSiteX(rowIndex, cellIndex, moveNum);
                 MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
                 if(mergedRegion.isMerged()){
                     moveMergeCellX(sheet, mergedRegion, moveNum);
                     isEnd = true;
                 }else if(cell != null && !StringUtils.isEmpty(cell.toString())){
                     moveCellX(sheet, rowIndex, cellIndex, moveNum);
-                    break;
                 }
+                moveCellSiteX(rowIndex, cellIndex, moveNum);
                 if(cell == null){
                     row.createCell(cellIndex);
                     if(isEnd){
@@ -1340,11 +1351,6 @@ public class ExcelExport {
                 }
                 int cellIndex = firstCell + j;
                 Cell cell = row.getCell(cellIndex);
-                boolean b = moveCellSiteY(sheet, rowIndex, cellIndex, rowNum);
-                if (b) {
-                    Row row1 = sheet.getRow(rowIndex + rowNum);
-                    row1.setHeight(row.getHeight());
-                }
                 MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
                 if (mergedRegion.isMerged()) {
                     moveMergeCellY(sheet, mergedRegion, rowNum);
@@ -1356,6 +1362,11 @@ public class ExcelExport {
                     isSkip[j] = true;
                 } else if (cell == null) {
                     row.createCell(cellIndex);
+                }
+                boolean b = moveCellSiteY(sheet, rowIndex, cellIndex, rowNum);
+                if (b) {
+                    Row row1 = sheet.getRow(rowIndex + rowNum);
+                    row1.setHeight(row.getHeight());
                 }
             }
         }
