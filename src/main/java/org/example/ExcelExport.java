@@ -391,10 +391,28 @@ public class ExcelExport {
      * @param sheet   表
      * @param dataMap 数据
      */
-    public void setAllArray(Sheet sheet, Map<String, Object> dataMap) {
+    public void setAllArray(Sheet sheet, Map<String, Object> dataMap){
+        List<String> keys = lineUp(sheet, dataMap);
+        for (String key : keys) {
+            Object o = dataMap.get(key);
+            this.inUse = arrayCellInfo.get(key);
+            if(this.inUse != null){
+                CellInfo cellInfo = this.inUse.get(key);
+                if(cellInfo != null){
+                    eachTransferStop(key, o, sheet, cellInfo.getRowIndex(), cellInfo.getCellIndex(), 1);
+                }else{
+                    eachTransferStop(key, o, sheet);
+                }
+            }
+        }
+    }
+
+    private List<String> lineUp(Sheet sheet, Map<String, Object> dataMap){
         String[] order = (String[]) dataMap.get(ORDER);
-        if (order != null) {
+        List<String> keys = new ArrayList<>(arrayCellInfo.keySet());
+        if(order != null) {
             for (String key : order) {
+                keys.remove(key);
                 Object o = dataMap.get(key);
                 this.inUse = arrayCellInfo.get(key);
                 if (this.inUse == null) {
@@ -410,21 +428,9 @@ public class ExcelExport {
                     }
                 }
             }
-        } else {
-            arrayCellInfo.forEach((key, value) -> {
-                Object o = dataMap.get(key);
-                this.inUse = value;
-                if (this.inUse != null) {
-                    CellInfo cellInfo = this.inUse.get(key);
-                    if (cellInfo != null) {
-                        eachTransferStop(key, o, sheet, cellInfo.getRowIndex(), cellInfo.getCellIndex(), 1);
-                    } else {
-                        eachTransferStop(key, o, sheet);
-                    }
-                }
-
-            });
+            initialize(sheet, dataMap);
         }
+        return keys;
     }
 
     /**
