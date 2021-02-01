@@ -1,4 +1,4 @@
-package org.example;
+package org.excel;
 
 import org.apache.poi.ss.util.CellRangeAddress;
 

@@ -1,4 +1,4 @@
-package org.example;
+package org.excel;
 
 import lombok.Data;
 import org.apache.poi.ss.usermodel.CellStyle;

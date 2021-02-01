@@ -1,4 +1,4 @@
-package org.example;
+package org.excel;
 
 import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
 import org.apache.poi.hssf.usermodel.HSSFPatriarch;
@@ -23,7 +23,7 @@ import java.util.*;
  *
  * @author Administrator
  */
-public class ExcelExport {
+public class ExcelUtil {
     private Map<String, CellInfo> cellInfo = new HashMap<>();
     private Map<String, Map<String, CellInfo>> arrayCellInfo = new HashMap<>();
     private Map<String, CellInfo> inUse = new HashMap<>();
@@ -40,9 +40,9 @@ public class ExcelExport {
     }
 
     public static Workbook excelAdaptive(String fileName, Map<String, Object> dataMap) throws IOException {
-        ExcelExport excelExport = new ExcelExport();
+        ExcelUtil excelExport = new ExcelUtil();
         Workbook wb = excelExport.excel(fileName, dataMap);
-        ExcelExport.adaptiveColumn(wb, 255);
+        ExcelUtil.adaptiveColumn(wb, 255);
         return wb;
     }
 
