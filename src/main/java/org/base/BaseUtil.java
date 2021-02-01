@@ -154,14 +154,14 @@ public class BaseUtil {
 
     @SafeVarargs
     public static <T, R> void objectListSetValue(List<T> obj1, List<?> obj2, TypeFunction<T, R>... functions){
-        if(CollectionUtils.isNotEmpty(obj1) && CollectionUtils.isNotEmpty(obj2) && obj2.size() >= obj1.size()) {
+        if(CollectionUtils.isNotEmpty(obj1) && CollectionUtils.isNotEmpty(obj2)) {
             Class<?> aClass = obj2.get(0).getClass();
             T t = obj1.get(0);
             for (TypeFunction<T, R> function : functions) {
                 String setName = TypeFunction.getToSet(function);
                 try {
                     Method declaredMethod = aClass.getDeclaredMethod(setName, function.apply(t).getClass());
-                    for (int i = 0; i < obj1.size(); i++) {
+                    for (int i = 0; i < obj2.size(); i++) {
                         R apply = function.apply(obj1.get(i));
                         declaredMethod.invoke(obj2.get(i), apply);
                     }
