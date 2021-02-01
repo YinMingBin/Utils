@@ -315,8 +315,8 @@ public class ExcelUtil {
             Row row = sheet.getRow(rowIndex);
             Integer cellIndex = value.getCellIndex();
             Cell cell = row.getCell(cellIndex);
-            if (o instanceof Image) {
-                Image image = (Image) o;
+            if (o instanceof ExcelImage) {
+                ExcelImage image = (ExcelImage) o;
                 byte[] bytes = image.getBytes();
                 MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
                 boolean merged = mergedRegion.isMerged();

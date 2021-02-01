@@ -1,11 +1,7 @@
-package org.example;
-
-import org.apache.poi.ss.usermodel.*;
+package org.excel;
 
 import java.io.*;
-import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * Hello world!
@@ -47,12 +43,10 @@ public class TestData {
         }
         datas.put("listMap", listMap);
 
-//        Workbook wb = ExcelExport.pageExcel("test.xlsx", datas, 5, 6);
 
         File file = new File("D:/A临时/excel/test.xlsx");
         file.createNewFile();
         FileOutputStream os = new FileOutputStream(file);
-//        wb.write(os);
         os.flush();
         os.close();
     }
