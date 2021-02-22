@@ -1,10 +1,11 @@
-package org.function;
+package org.custom.function;
 
 /**
  * 无返回值函数
  * @author Administrator
  */
 public interface VoidFunction {
+    @FunctionalInterface
     interface One<V> {
         /**
          * 一个参数
@@ -13,6 +14,7 @@ public interface VoidFunction {
         void apply(V val);
     }
 
+    @FunctionalInterface
     interface Two<V1, V2> {
         /**
          * 两个参数

@@ -1,15 +1,15 @@
 package org.utils;
 
+import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
-import org.function.TypeFunction;
+import org.custom.collection.MatchingList;
+import org.custom.function.SetValue;
+import org.custom.function.TypeFunction;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -18,6 +18,38 @@ import java.util.stream.Collectors;
  * @author Administrator
  */
 public class BaseUtil {
+    /**
+     * list转set
+     * @param list 数据集
+     * @param mapper 获取值函数
+     * @param <T> 对象类型
+     * @param <R> 值类型
+     * @return list
+     */
+    public static <T, R> List<R> toList(List<T> list, Function<? super T, ? extends R> mapper) {
+        return list.stream().map(mapper).collect(Collectors.toList());
+    }
+
+    /**
+     * list转set
+     * @param list 数据集
+     * @param mapper 获取值函数
+     * @param <T> 对象类型
+     * @param <R> 值类型
+     * @return set
+     */
+    public static <T, R> Set<R> toSet(List<T> list, Function<? super T, ? extends R> mapper) {
+        return list.stream().map(mapper).collect(Collectors.toSet());
+    }
+
+    /**
+     * list转map，不判断key重复
+     * @param objects 对象集
+     * @param keyMapper 获取key函数
+     * @param <T> 对象类型
+     * @param <K> key类型
+     * @return map
+     */
     public static <T, K> Map<K, T> toMap(Collection<T> objects, Function<? super T, ? extends K> keyMapper) {
         if (!(objects == null || objects.isEmpty())) {
             return objects.stream().collect(Collectors.toMap(keyMapper, Function.identity()));
@@ -25,6 +57,16 @@ public class BaseUtil {
         return new HashMap<>(0);
     }
 
+    /**
+     * list转map，不判断key重复
+     * @param objects 对象集
+     * @param keyMapper 获取key函数
+     * @param valueMapper 获取value函数
+     * @param <T> 对象类型
+     * @param <K> key类型
+     * @param <V> value类型
+     * @return map
+     */
     public static <T, K, V> Map<K, V> toMap(Collection<T> objects, Function<? super T, ? extends K> keyMapper,
                                             Function<? super T, ? extends V> valueMapper) {
         if (!(objects == null || objects.isEmpty())) {
@@ -33,6 +75,14 @@ public class BaseUtil {
         return new HashMap<>(0);
     }
 
+    /**
+     * list转map，key重复保留前一位
+     * @param objects 对象集
+     * @param keyMapper 获取key函数
+     * @param <T> 对象类型
+     * @param <K> key类型
+     * @return map
+     */
     public static <T, K> Map<K, T> toMapKey1(Collection<T> objects, Function<? super T, ? extends K> keyMapper) {
         if (!(objects == null || objects.isEmpty())) {
             return objects.stream().collect(Collectors.toMap(keyMapper, Function.identity(), (key1, key2) -> key1));
@@ -40,6 +90,16 @@ public class BaseUtil {
         return new HashMap<>(0);
     }
 
+    /**
+     * list转map，key重复保留前一位
+     * @param objects 对象集
+     * @param keyMapper 获取key函数
+     * @param valueMapper 获取value函数
+     * @param <T> 对象类型
+     * @param <K> key类型
+     * @param <V> value类型
+     * @return map
+     */
     public static <T, K, V> Map<K, V> toMapKey1(Collection<T> objects, Function<? super T, ? extends K> keyMapper,
                                                 Function<? super T, ? extends V> valueMapper) {
         if (!(objects == null || objects.isEmpty())) {
@@ -48,6 +108,14 @@ public class BaseUtil {
         return new HashMap<>(0);
     }
 
+    /**
+     * list转map，key重复保留后一位
+     * @param objects 对象集
+     * @param keyMapper 获取key函数
+     * @param <T> 对象类型
+     * @param <K> key类型
+     * @return map
+     */
     public static <T, K> Map<K, T> toMapKey2(Collection<T> objects, Function<? super T, ? extends K> keyMapper) {
         if (!(objects == null || objects.isEmpty())) {
             return objects.stream().collect(Collectors.toMap(keyMapper, Function.identity(), (key1, key2) -> key2));
@@ -55,6 +123,32 @@ public class BaseUtil {
         return new HashMap<>(0);
     }
 
+    /**
+     * list转map，key重复保留后一位
+     * @param objects 对象集
+     * @param keyMapper 获取key函数
+     * @param valueMapper 获取value函数
+     * @param <T> 对象类型
+     * @param <K> key类型
+     * @param <V> value类型
+     * @return map
+     */
+    public static <T, K, V> Map<K, V> toMapKey2(Collection<T> objects, Function<? super T, ? extends K> keyMapper,
+                                                Function<? super T, ? extends V> valueMapper) {
+        if (!(objects == null || objects.isEmpty())) {
+            return objects.stream().collect(Collectors.toMap(keyMapper, valueMapper, (key1, key2) -> key2));
+        }
+        return new HashMap<>(0);
+    }
+
+    /**
+     * list分组
+     * @param objects 要分组的对象集
+     * @param keyMapper 根据什么分组
+     * @param <T> 分组对象类型
+     * @param <K> 根据什么分组类型
+     * @return 分组后数据
+     */
     public static <T, K> Map<K, List<T>> groupingBy(List<T> objects, Function<? super T, ? extends K> keyMapper) {
         if (!objects.isEmpty()) {
             return objects.stream().collect(Collectors.groupingBy(keyMapper));
@@ -152,6 +246,14 @@ public class BaseUtil {
         }
     }
 
+    /**
+     * 对象集一一对应设置值
+     * @param obj1 赋值对象集
+     * @param obj2 取值对象集
+     * @param functions 要赋值的属性
+     * @param <T> 赋值对象类型
+     * @param <R> 值类型
+     */
     @SafeVarargs
     public static <T, R> void objectListSetValue(List<T> obj1, List<?> obj2, TypeFunction<T, R>... functions){
         if(CollectionUtils.isNotEmpty(obj1) && CollectionUtils.isNotEmpty(obj2)) {
@@ -173,5 +275,82 @@ public class BaseUtil {
                 }
             }
         }
+    }
+
+    /**
+     * 匹配赋值
+     * @param obj1 赋值对象集
+     * @param obj2 取值对象集
+     * @param fun1 赋值对象匹配字段
+     * @param fun2 取值对象匹配字段
+     * @param functions 要赋值的属性
+     * @param <T> 赋值对象类型
+     * @param <I> 取值对象类型
+     * @param <R> 匹配字段类型
+     */
+    public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
+                                          List<Matching<T, I>> functions){
+        Map<R, I> riMap = toMapKey1(obj2, fun2);
+        for (T t : obj1) {
+            I i = riMap.get(fun1.apply(t));
+            functions.forEach(fun -> fun.setValue(t, i));
+        }
+    }
+
+    public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
+                                          MatchingList<T, I> matchingList){
+        Map<R, I> riMap = toMapKey1(obj2, fun2);
+        for (T t : obj1) {
+            I i = riMap.get(fun1.apply(t));
+            matchingList.forEach(fun -> fun.setValue(t, i));
+        }
+    }
+
+    /**
+     * 匹配对象赋值接口
+     * @param <T> 赋值对象类型
+     * @param <I> 取值对象类型
+     */
+    public interface Matching<T, I>{
+        /**
+         * 将i的值赋值给t
+         * @param t 赋值对象
+         * @param i 取值对象
+         */
+        void setValue(T t, I i);
+    }
+
+    /**
+     * 匹配对象赋值实现
+     * @param <T> 赋值对象类型
+     * @param <I> 取值对象类型
+     * @param <R> 值类型
+     */
+    @Data
+    private static class MatchingImpl<T, I, R> implements Matching<T, I>{
+        private SetValue<T, R> assignFun;
+        private Function<I, R> valueFun;
+
+        public MatchingImpl(SetValue<T, R> assignFun, Function<I, R> valueFun) {
+            this.assignFun = assignFun;
+            this.valueFun = valueFun;
+        }
+
+        @Override
+        public void setValue(T t, I i) {
+            assignFun.apply(t, valueFun.apply(i));
+        }
+    }
+
+    /**
+     * 获取匹配赋值对象
+     * @param assignFun 赋值函数
+     * @param valueFun 取值函数
+     * @param <R> 值类型
+     * @return 匹配赋值对象
+     */
+    public static <T, I, R> MatchingImpl<T, I, R> matchingProperty(SetValue<T, R> assignFun,
+                                                                   Function<I, R> valueFun){
+        return new MatchingImpl<>(assignFun, valueFun);
     }
 }

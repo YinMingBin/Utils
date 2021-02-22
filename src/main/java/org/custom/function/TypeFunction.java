@@ -1,4 +1,4 @@
-package org.function;
+package org.custom.function;
 
 import java.beans.Introspector;
 import java.io.Serializable;
@@ -47,4 +47,5 @@ public interface TypeFunction<T, R> extends Serializable, Function<T, R> {
             throw new RuntimeException(e);
         }
     }
+
 }

@@ -1,12 +1,11 @@
 package org.utils;
 
+import org.custom.collection.QueryMap;
 import org.springframework.util.StringUtils;
 
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.BiConsumer;
-import java.util.function.Function;
 
 /**
  * 处理请求的所有参数
@@ -14,6 +13,12 @@ import java.util.function.Function;
  */
 public class QueryMapUtil {
 
+    /**
+     * 处理map
+     * @param queryMap 要处理的map
+     * @param functionMap 处理函数集
+     * @return 处理后的数据
+     */
     public static Map<String, Object> dispose(Map<String, Object> queryMap, QueryMap functionMap){
         Map<String, Object> map = new HashMap<>(functionMap.getSize());
         functionMap.forEach((key, value) -> {
@@ -86,38 +91,4 @@ public class QueryMapUtil {
         return null;
     }
 
-    public static class QueryMap{
-        private final Map<String, Function<Object, ?>> map = new HashMap<>(10);
-        private Integer size = 0;
-
-        public QueryMap add(String key){
-            map.put(key, val -> val);
-            size++;
-            return this;
-        }
-        public QueryMap add(String key, Function<Object, ?> value){
-            map.put(key, value);
-            size++;
-            return this;
-        }
-        public QueryMap add(String key, Function<Object, ?>... values){
-            Function<Object, ?> value = val -> {
-                for (Function<Object, ?> function : values) {
-                    val = function.apply(val);
-                }
-                return val;
-            };
-            map.put(key, value);
-            size++;
-            return this;
-        }
-
-        public void forEach(BiConsumer<String, Function<Object, ?>> action) {
-            map.forEach(action);
-        }
-
-        public Integer getSize() {
-            return size;
-        }
-    }
 }
