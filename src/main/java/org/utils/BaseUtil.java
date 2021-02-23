@@ -158,6 +158,29 @@ public class BaseUtil {
     }
 
     /**
+     * list分组
+     * @param objects 要分组的对象集
+     * @param keyMapper 根据什么分组
+     * @param valueMapper 分组后的value处理
+     * @param <T> 分组对象类型
+     * @param <K> 根据什么分组类型
+     * @param <V> value类型
+     * @return 分组后数据
+     */
+    public static <T, K, V> Map<K, V> groupingBy(List<T> objects, Function<? super T, ? extends K> keyMapper,
+                                                 Function<List<T>, ? extends V> valueMapper) {
+        if (!objects.isEmpty()) {
+            Map<? extends K, List<T>> collect = objects.stream().collect(Collectors.groupingBy(keyMapper));
+            Map<K, V> map = new HashMap<>(collect.size());
+            collect.forEach((key, value) -> {
+                map.put(key, valueMapper.apply(value));
+            });
+            return map;
+        }
+        return new HashMap<>(0);
+    }
+
+    /**
      * 对象转map
      * @param item 要转换的对象
      * @return 转换后的map
