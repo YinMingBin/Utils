@@ -5,6 +5,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.custom.collection.MatchingList;
 import org.custom.function.SetValue;
 import org.custom.function.TypeFunction;
+import org.custom.function.VoidFunction;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -290,19 +291,23 @@ public class BaseUtil {
      */
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
                                           List<Matching<T, I>> functions){
-        Map<R, I> riMap = toMapKey1(obj2, fun2);
-        for (T t : obj1) {
-            I i = riMap.get(fun1.apply(t));
-            functions.forEach(fun -> fun.setValue(t, i));
-        }
+        matching(obj1, obj2, fun1, fun2, (t, i) -> functions.forEach(fun -> fun.setValue(t, i)));
     }
 
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
                                           MatchingList<T, I> matchingList){
-        Map<R, I> riMap = toMapKey1(obj2, fun2);
-        for (T t : obj1) {
-            I i = riMap.get(fun1.apply(t));
-            matchingList.forEach(fun -> fun.setValue(t, i));
+        matching(obj1, obj2, fun1, fun2, (t, i) -> matchingList.forEach(fun -> fun.setValue(t, i)));
+    }
+
+    public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2, VoidFunction.Two<T, I> function){
+        if(obj1 != null && obj1.size() > 0 && obj2 != null && obj2.size() > 0) {
+            Map<R, I> riMap = toMapKey1(obj2, fun2);
+            for (T t : obj1) {
+                I i = riMap.get(fun1.apply(t));
+                if (i != null) {
+                    function.apply(t, i);
+                }
+            }
         }
     }
 
