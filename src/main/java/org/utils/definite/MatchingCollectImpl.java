@@ -10,8 +10,13 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
+
 /**
+ * 匹配赋值
  * @author Administrator
+ * @param <T> 赋值对象类型
+ * @param <I> 取值对象类型
+ * @param <R> 匹配字段类型
  */
 @Data
 public class MatchingCollectImpl<T, I, R> implements MatchingCollect<T> {
@@ -21,7 +26,7 @@ public class MatchingCollectImpl<T, I, R> implements MatchingCollect<T> {
     private MatchingList<T, I> matchingList;
 
     public MatchingCollectImpl(List<I> iList, Function<T, R> tFun, Function<I, R> iFun, MatchingList<T, I> matchingList) {
-        this.iMap = iList != null ? BaseUtil.toMap(iList, iFun) : new HashMap<>(0);
+        this.iMap = iList != null ? BaseUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
         this.tFun = tFun;
         this.iFun = iFun;
         this.matchingList = matchingList;
