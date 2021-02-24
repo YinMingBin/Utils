@@ -1,7 +1,7 @@
 package org.utils.definite;
 
 import lombok.Data;
-import org.custom.function.SetValue;
+import org.custom.function.SetValueFunction;
 import org.utils.roughly.Matching;
 
 import java.util.function.Function;
@@ -15,10 +15,10 @@ import java.util.function.Function;
  */
 @Data
 public class MatchingImpl<T, I, R> implements Matching<T, I> {
-    private SetValue<T, R> assignFun;
+    private SetValueFunction<T, R> assignFun;
     private Function<I, R> valueFun;
 
-    public MatchingImpl(SetValue<T, R> assignFun, Function<I, R> valueFun) {
+    public MatchingImpl(SetValueFunction<T, R> assignFun, Function<I, R> valueFun) {
         this.assignFun = assignFun;
         this.valueFun = valueFun;
     }

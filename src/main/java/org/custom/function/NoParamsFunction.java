@@ -6,7 +6,7 @@ package org.custom.function;
  * @param <R>
  */
 @FunctionalInterface
-public interface NoParams<R> {
+public interface NoParamsFunction<R> {
     /**
      * 无参有反
      * @return R

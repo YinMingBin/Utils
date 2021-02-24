@@ -1,6 +1,6 @@
 package org.custom.collection;
 
-import org.custom.function.SetValue;
+import org.custom.function.SetValueFunction;
 import org.utils.roughly.Matching;
 import org.utils.definite.MatchingImpl;
 
@@ -23,7 +23,7 @@ public class MatchingList<T, I> {
      * @param <R> 值类型
      * @return 本身
      */
-    public <R> MatchingList<T, I> add(SetValue<T, R> assignFun, Function<I, R> valueFun){
+    public <R> MatchingList<T, I> add(SetValueFunction<T, R> assignFun, Function<I, R> valueFun){
         matchingList.add(new MatchingImpl<>(assignFun, valueFun));
         return this;
     }

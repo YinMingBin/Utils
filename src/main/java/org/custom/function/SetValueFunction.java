@@ -7,7 +7,7 @@ package org.custom.function;
  * @param <R> 值类型
  */
 @FunctionalInterface
-public interface SetValue<T, R> {
+public interface SetValueFunction<T, R> {
 
     /**
      * 给对象属性赋值
