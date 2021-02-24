@@ -4,7 +4,14 @@ package org.custom.function;
  * 无返回值函数
  * @author Administrator
  */
+@FunctionalInterface
 public interface VoidFunction {
+
+    /**
+     * 无参数
+     */
+    void apply();
+
     @FunctionalInterface
     interface One<V> {
         /**

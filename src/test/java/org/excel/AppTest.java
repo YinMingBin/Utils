@@ -30,8 +30,8 @@ public class AppTest{
     @Test
     public void shouldAnswerWithTrue(){
         List<Sex> sexList = new ArrayList<Sex>(){{
-            add(new Sex(0, "女"));
-            add(new Sex(1, "男"));
+            add(new Sex(0, "女", new User("a", 1, 0)));
+            add(new Sex(1, "男", new User("b", 2, 1)));
         }};
         List<Stature> statureList = new ArrayList<Stature>(){{
             add(new Stature(0, "胖"));
@@ -46,6 +46,7 @@ public class AppTest{
         matchingCollectList.add(sexList, User::getSexId, Sex::getSexId,
                 new MatchingList<User, Sex>()
                         .add(User::setSexName, Sex::getSexName)
+                        .add(User::setDescendant, Sex::getUser)
         ).add(statureList, User::getStatureId, Stature::getStatureId,
                 new MatchingList<User, Stature>()
                         .add(User::setStature, Stature::getStature)

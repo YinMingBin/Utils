@@ -8,6 +8,7 @@ import java.util.Map;
 
 @Data
 public class User implements Serializable {
+    private User descendant;
     private String name;
     private Integer age;
     private Integer sexId;
@@ -44,10 +45,17 @@ public class User implements Serializable {
 class Sex {
     private Integer sexId;
     private String sexName;
+    private User user;
 
     public Sex(Integer sexId, String sexName) {
         this.sexId = sexId;
         this.sexName = sexName;
+    }
+
+    public Sex(Integer sexId, String sexName, User user) {
+        this.sexId = sexId;
+        this.sexName = sexName;
+        this.user = user;
     }
 }
 
