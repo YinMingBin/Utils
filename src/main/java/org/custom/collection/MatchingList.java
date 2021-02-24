@@ -1,11 +1,11 @@
 package org.custom.collection;
 
 import org.custom.function.SetValue;
-import org.utils.BaseUtil;
+import org.utils.roughly.Matching;
+import org.utils.definite.MatchingImpl;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -14,7 +14,7 @@ import java.util.function.Function;
  * @author Administrator
  */
 public class MatchingList<T, I> {
-    private final List<BaseUtil.Matching<T, I>> matchingList = new ArrayList<>();
+    private final List<Matching<T, I>> matchingList = new ArrayList<>();
 
     /**
      * 添加匹配赋值
@@ -24,11 +24,11 @@ public class MatchingList<T, I> {
      * @return 本身
      */
     public <R> MatchingList<T, I> add(SetValue<T, R> assignFun, Function<I, R> valueFun){
-        matchingList.add(BaseUtil.matchingProperty(assignFun, valueFun));
+        matchingList.add(new MatchingImpl<>(assignFun, valueFun));
         return this;
     }
 
-    public void forEach(Consumer<? super BaseUtil.Matching<T, I>> action) {
+    public void forEach(Consumer<? super Matching<T, I>> action) {
         matchingList.forEach(action);
     }
 }

@@ -1,11 +1,11 @@
 package org.utils;
 
-import lombok.Data;
 import org.apache.commons.collections4.CollectionUtils;
+import org.custom.collection.MatchingCollectList;
 import org.custom.collection.MatchingList;
-import org.custom.function.SetValue;
 import org.custom.function.TypeFunction;
 import org.custom.function.VoidFunction;
+import org.utils.roughly.Matching;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -158,7 +158,7 @@ public class BaseUtil {
     }
 
     /**
-     * list分组
+     * list分组处理value
      * @param objects 要分组的对象集
      * @param keyMapper 根据什么分组
      * @param valueMapper 分组后的value处理
@@ -334,51 +334,12 @@ public class BaseUtil {
         }
     }
 
-    /**
-     * 匹配对象赋值接口
-     * @param <T> 赋值对象类型
-     * @param <I> 取值对象类型
-     */
-    public interface Matching<T, I>{
-        /**
-         * 将i的值赋值给t
-         * @param t 赋值对象
-         * @param i 取值对象
-         */
-        void setValue(T t, I i);
-    }
-
-    /**
-     * 匹配对象赋值实现
-     * @param <T> 赋值对象类型
-     * @param <I> 取值对象类型
-     * @param <R> 值类型
-     */
-    @Data
-    private static class MatchingImpl<T, I, R> implements Matching<T, I>{
-        private SetValue<T, R> assignFun;
-        private Function<I, R> valueFun;
-
-        public MatchingImpl(SetValue<T, R> assignFun, Function<I, R> valueFun) {
-            this.assignFun = assignFun;
-            this.valueFun = valueFun;
-        }
-
-        @Override
-        public void setValue(T t, I i) {
-            assignFun.apply(t, valueFun.apply(i));
+    public static <T> void matching(List<T> obj1, MatchingCollectList<T> matchingCollectList){
+        if(obj1 != null && obj1.size() > 0 && matchingCollectList != null && matchingCollectList.isNotEmpty()){
+            for (T t : obj1) {
+                matchingCollectList.forEach(m -> m.setValue(t));
+            }
         }
     }
 
-    /**
-     * 获取匹配赋值对象
-     * @param assignFun 赋值函数
-     * @param valueFun 取值函数
-     * @param <R> 值类型
-     * @return 匹配赋值对象
-     */
-    public static <T, I, R> MatchingImpl<T, I, R> matchingProperty(SetValue<T, R> assignFun,
-                                                                   Function<I, R> valueFun){
-        return new MatchingImpl<>(assignFun, valueFun);
-    }
 }
