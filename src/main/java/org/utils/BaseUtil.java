@@ -1,8 +1,10 @@
 package org.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.SetUtils;
 import org.custom.collection.MatchingCollectList;
 import org.custom.collection.MatchingList;
+import org.custom.function.SetValueFunction;
 import org.custom.function.TypeFunction;
 import org.custom.function.VoidFunction;
 import org.utils.roughly.Matching;
@@ -313,6 +315,32 @@ public class BaseUtil {
                     e.printStackTrace();
                 } catch (IllegalAccessException | InvocationTargetException e) {
                     e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    /**
+     * 匹配赋值
+     *
+     * @param obj1      赋值对象集
+     * @param obj2      取值对象集
+     * @param fun1      赋值对象匹配字段
+     * @param fun2      取值对象匹配字段
+     * @param setValueFun 赋值函数
+     * @param getValueFun 取值函数
+     * @param <T>       赋值对象类型
+     * @param <I>       取值对象类型
+     * @param <R>       匹配字段类型
+     */
+    public static <T, I, R, V> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
+                                             SetValueFunction<T, V> setValueFun, Function<I, V> getValueFun) {
+        if (obj1 != null && obj1.size() > 0 && obj2 != null && obj2.size() > 0) {
+            Map<R, I> riMap = toMapKey1(obj2, fun2);
+            for (T t : obj1) {
+                I i = riMap.get(fun1.apply(t));
+                if (i != null) {
+                    setValueFun.apply(t, getValueFun.apply(i));
                 }
             }
         }

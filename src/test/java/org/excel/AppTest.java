@@ -1,10 +1,14 @@
 package org.excel;
 
+import jdk.nashorn.internal.runtime.regexp.RegExp;
+import org.custom.collection.MatchingCollectList;
 import org.custom.collection.MatchingList;
 import org.junit.Test;
 import org.utils.BaseUtil;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 
 /**
@@ -14,53 +18,40 @@ public class AppTest{
     /**
      * Rigorous Test :-)
      */
+
+    @Test
+    public void test() {
+        String s = "-123";
+        Pattern pattern = Pattern.compile("(?<=-)(?<b>\\d+)");
+        Matcher matcher = pattern.matcher(s);
+        matcher.find();
+        System.out.println(matcher.group());
+    }
     @Test
     public void shouldAnswerWithTrue(){
         List<Sex> sexList = new ArrayList<Sex>(){{
             add(new Sex(0, "女"));
             add(new Sex(1, "男"));
         }};
-        List<User> userList = new ArrayList<User>(){{
-            add(new User("张三", 18, 1));
-            add(new User("李四", 16, 0));
-            add(new User("王五", 19, 1));
+        List<Stature> statureList = new ArrayList<Stature>(){{
+            add(new Stature(0, "胖"));
+            add(new Stature(1, "瘦"));
         }};
-        BaseUtil.matching(userList, sexList, User::getSexId, Sex::getSexId,
+        List<User> userList = new ArrayList<User>(){{
+            add(new User("张三", 18, 1, 1));
+            add(new User("李四", 16, 0, 0));
+            add(new User("王五", 19, 1, 0));
+        }};
+        MatchingCollectList<User> matchingCollectList = new MatchingCollectList<>();
+        matchingCollectList.add(sexList, User::getSexId, Sex::getSexId,
                 new MatchingList<User, Sex>()
                         .add(User::setSexName, Sex::getSexName)
+        ).add(statureList, User::getStatureId, Stature::getStatureId,
+                new MatchingList<User, Stature>()
+                        .add(User::setStature, Stature::getStature)
         );
+        BaseUtil.matching(userList, matchingCollectList);
         System.out.println(123);
     }
 
-    public String convert(String s, int numRows) {
-        StringBuilder[] sbs = new StringBuilder[numRows];
-        int len = s.length();
-        int i = 0;
-        int j = 0;
-        boolean b = true;
-        while (i < len){
-            StringBuilder sb = sbs[j];
-            if(sb == null){
-                sb = new StringBuilder();
-                sbs[j] = sb;
-            }
-            sb.append(s.charAt(i));
-            i++;
-            j = b ? ++j : --j;
-            if(numRows < 2){j = 0;}
-            if(b){
-                b = j < numRows - 1;
-            }else {
-                b = j == 0;
-            }
-        }
-        StringBuilder sb = sbs[0];
-        for (int i1 = 1; i1 < numRows; i1++) {
-            StringBuilder sb1 = sbs[i1];
-            if(sb1 != null) {
-                sb.append(sb1.toString());
-            }
-        }
-        return sb.toString();
-    }
 }
