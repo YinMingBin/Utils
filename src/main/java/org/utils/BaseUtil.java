@@ -332,12 +332,16 @@ public class BaseUtil {
      */
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
                                           List<Matching<T, I>> functions) {
-        matching(obj1, obj2, fun1, fun2, (t, i) -> functions.forEach(fun -> fun.setValue(t, i)));
+        if (functions != null && !functions.isEmpty()) {
+            matching(obj1, obj2, fun1, fun2, (t, i) -> functions.forEach(fun -> fun.setValue(t, i)));
+        }
     }
 
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
                                           MatchingList<T, I> matchingList) {
-        matching(obj1, obj2, fun1, fun2, (t, i) -> matchingList.forEach(fun -> fun.setValue(t, i)));
+        if (matchingList != null && matchingList.isNotEmpty()) {
+            matching(obj1, obj2, fun1, fun2, (t, i) -> matchingList.forEach(fun -> fun.setValue(t, i)));
+        }
     }
 
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2, VoidFunction.Two<T, I> function) {

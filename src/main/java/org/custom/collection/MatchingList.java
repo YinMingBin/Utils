@@ -31,4 +31,12 @@ public class MatchingList<T, I> {
     public void forEach(Consumer<? super Matching<T, I>> action) {
         matchingList.forEach(action);
     }
+
+    /**
+     * 判断是否有值
+     * @return 是否有值
+     */
+    public boolean isNotEmpty() {
+        return !matchingList.isEmpty();
+    }
 }

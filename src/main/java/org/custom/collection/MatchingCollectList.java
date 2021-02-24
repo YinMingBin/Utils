@@ -34,6 +34,10 @@ public class MatchingCollectList<T> {
         matchingCollects.forEach(action);
     }
 
+    /**
+     * 判断是否有值
+     * @return 是否有值
+     */
     public boolean isNotEmpty() {
         return !matchingCollects.isEmpty();
     }
