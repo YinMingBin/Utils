@@ -440,4 +440,24 @@ public class BaseUtil {
         }
     }
 
+    /**
+     * 只保存相同数据（两边都存在的数据）
+     * @param list1 数据集1(两边都存在的数据会放到这里面)
+     * @param list2 数据集2
+     * @param <T> 数据类型
+     */
+    public static <T> void saveIdentical(Collection<T> list1, Collection<T> list2){
+        if (list1 != null) {
+            Collection<T> list = new ArrayList<>();
+            if (list2 != null) {
+                for (T t : list1) {
+                    if (list2.contains(t)) {
+                        list.add(t);
+                    }
+                }
+            }
+            list1.clear();
+            list1.addAll(list);
+        }
+    }
 }
