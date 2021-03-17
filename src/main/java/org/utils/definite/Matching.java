@@ -2,7 +2,7 @@ package org.utils.definite;
 
 import lombok.Data;
 import org.custom.function.SetValueFunction;
-import org.utils.roughly.Matching;
+import org.utils.roughly.MatchingInterface;
 
 import java.util.function.Function;
 
@@ -14,11 +14,11 @@ import java.util.function.Function;
  * @param <R> 值类型
  */
 @Data
-public class MatchingImpl<T, I, R> implements Matching<T, I> {
+public class Matching<T, I, R> implements MatchingInterface<T, I> {
     private SetValueFunction<T, R> assignFun;
     private Function<I, R> valueFun;
 
-    public MatchingImpl(SetValueFunction<T, R> assignFun, Function<I, R> valueFun) {
+    public Matching(SetValueFunction<T, R> assignFun, Function<I, R> valueFun) {
         this.assignFun = assignFun;
         this.valueFun = valueFun;
     }

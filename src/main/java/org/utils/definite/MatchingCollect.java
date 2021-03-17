@@ -2,8 +2,9 @@ package org.utils.definite;
 
 import lombok.Data;
 import org.custom.collection.MatchingList;
+import org.custom.function.SetValueFunction;
 import org.utils.BaseUtil;
-import org.utils.roughly.MatchingCollect;
+import org.utils.roughly.MatchingCollectInterface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,17 +20,26 @@ import java.util.function.Function;
  * @param <R> 匹配字段类型
  */
 @Data
-public class MatchingCollectImpl<T, I, R> implements MatchingCollect<T> {
+public class MatchingCollect<T, I, R> implements MatchingCollectInterface<T> {
     private Map<R, I> iMap;
     private Function<T, R> tFun;
     private Function<I, R> iFun;
     private MatchingList<T, I> matchingList;
 
-    public MatchingCollectImpl(List<I> iList, Function<T, R> tFun, Function<I, R> iFun, MatchingList<T, I> matchingList) {
+    public MatchingCollect(List<I> iList, Function<T, R> tFun, Function<I, R> iFun, MatchingList<T, I> matchingList) {
         this.iMap = iList != null ? BaseUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
         this.tFun = tFun;
         this.iFun = iFun;
         this.matchingList = matchingList;
+    }
+
+    public MatchingCollect(List<I> iList, Function<T, R> tFun, Function<I, R> iFun,
+                           SetValueFunction<T, R> assignFun, Function<I, R> valueFun) {
+        this.iMap = iList != null ? BaseUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
+        this.tFun = tFun;
+        this.iFun = iFun;
+        this.matchingList = new MatchingList<>();
+        this.matchingList.add(assignFun, valueFun);
     }
 
     @Override

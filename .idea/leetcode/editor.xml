@@ -3,6 +3,14 @@
   <component name="LeetcodeEditor">
     <option name="projectConfig">
       <map>
+        <entry key="$PROJECT_DIR$/../leetCode/src/main/java/org/example/leetcode/editor/cn/[331]验证二叉树的前序序列化.java">
+          <value>
+            <LeetcodeEditor>
+              <option name="path" value="$PROJECT_DIR$/../leetCode/src/main/java/org/example/leetcode/editor/cn/[331]验证二叉树的前序序列化.java" />
+              <option name="questionId" value="331" />
+            </LeetcodeEditor>
+          </value>
+        </entry>
         <entry key="$PROJECT_DIR$/../leetCode/src/main/java/org/example/leetcode/editor/cn/[6]Z 字形变换.java">
           <value>
             <LeetcodeEditor>

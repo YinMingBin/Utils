@@ -1,7 +1,7 @@
 package org.custom.collection;
 
-import org.utils.roughly.MatchingCollect;
-import org.utils.definite.MatchingCollectImpl;
+import org.utils.roughly.MatchingCollectInterface;
+import org.utils.definite.MatchingCollect;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +13,7 @@ import java.util.function.Function;
  * @author Administrator
  */
 public class MatchingCollectList<T> {
-    private final List<MatchingCollect<T>> matchingCollects = new ArrayList<>();
+    private final List<MatchingCollectInterface<T>> matchingCollects = new ArrayList<>();
 
     /**
      * 添加匹配赋值
@@ -26,11 +26,11 @@ public class MatchingCollectList<T> {
      * @return 本身
      */
     public <I, R> MatchingCollectList<T> add(List<I> iList, Function<T, R> tFun, Function<I, R> iFun, MatchingList<T, I> matchingList){
-        matchingCollects.add(new MatchingCollectImpl<>(iList, tFun, iFun, matchingList));
+        matchingCollects.add(new MatchingCollect<>(iList, tFun, iFun, matchingList));
         return this;
     }
 
-    public void forEach(Consumer<? super MatchingCollect<T>> action) {
+    public void forEach(Consumer<? super MatchingCollectInterface<T>> action) {
         matchingCollects.forEach(action);
     }
 

@@ -18,10 +18,6 @@ public class User implements Serializable {
     private Map<String, List<String>> map;
     private List<String> list;
 
-    public void setSexName(String sexName){
-        this.sexName = sexName;
-    }
-
     public User(String name, Integer age) {
         this.name = name;
         this.age = age;

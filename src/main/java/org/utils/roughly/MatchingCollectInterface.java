@@ -5,7 +5,7 @@ package org.utils.roughly;
  * @author Administrator
  * @param <T> 赋值对象类型
  */
-public interface MatchingCollect<T> {
+public interface MatchingCollectInterface<T> {
     /**
      * 给对象赋值
      * @param t 赋值对象
