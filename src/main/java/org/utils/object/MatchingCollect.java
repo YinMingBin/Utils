@@ -1,10 +1,9 @@
-package org.utils.roughly.impl;
+package org.utils.object;
 
 import lombok.Data;
 import org.custom.collection.MatchingList;
 import org.custom.function.SetValueFunction;
 import org.utils.BaseUtil;
-import org.utils.roughly.MatchingCollectInterface;
 
 import java.util.HashMap;
 import java.util.List;
@@ -20,7 +19,7 @@ import java.util.function.Function;
  * @param <R> 匹配字段类型
  */
 @Data
-public class MatchingCollect<T, I, R> implements MatchingCollectInterface<T> {
+public class MatchingCollect<T, I, R>{
     private Map<R, I> iMap;
     private Function<T, R> tFun;
     private Function<I, R> iFun;
@@ -42,7 +41,6 @@ public class MatchingCollect<T, I, R> implements MatchingCollectInterface<T> {
         this.matchingList.add(assignFun, valueFun);
     }
 
-    @Override
     public void setValue(T t) {
         I i = iMap.get(tFun.apply(t));
         if (i != null) {

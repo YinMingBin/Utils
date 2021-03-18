@@ -1,8 +1,7 @@
 package org.custom.collection;
 
 import org.custom.function.SetValueFunction;
-import org.utils.roughly.MatchingInterface;
-import org.utils.roughly.impl.Matching;
+import org.utils.object.Matching;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,7 +13,7 @@ import java.util.function.Function;
  * @author Administrator
  */
 public class MatchingList<T, I> {
-    private final List<MatchingInterface<T, I>> matchingList = new ArrayList<>();
+    private final List<Matching<T, I, ?>> matchingList = new ArrayList<>();
 
     /**
      * 添加匹配赋值
@@ -28,7 +27,7 @@ public class MatchingList<T, I> {
         return this;
     }
 
-    public void forEach(Consumer<? super MatchingInterface<T, I>> action) {
+    public void forEach(Consumer<? super Matching<T, I, ?>> action) {
         matchingList.forEach(action);
     }
 

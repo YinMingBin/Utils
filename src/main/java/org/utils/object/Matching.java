@@ -1,8 +1,7 @@
-package org.utils.roughly.impl;
+package org.utils.object;
 
 import lombok.Data;
 import org.custom.function.SetValueFunction;
-import org.utils.roughly.MatchingInterface;
 
 import java.util.function.Function;
 
@@ -14,7 +13,7 @@ import java.util.function.Function;
  * @param <R> 值类型
  */
 @Data
-public class Matching<T, I, R> implements MatchingInterface<T, I> {
+public class Matching<T, I, R>{
     private SetValueFunction<T, R> assignFun;
     private Function<I, R> valueFun;
 
@@ -23,7 +22,6 @@ public class Matching<T, I, R> implements MatchingInterface<T, I> {
         this.valueFun = valueFun;
     }
 
-    @Override
     public void setValue(T t, I i) {
         if (t != null && i != null) {
             assignFun.apply(t, valueFun.apply(i));

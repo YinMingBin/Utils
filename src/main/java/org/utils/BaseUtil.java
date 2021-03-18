@@ -1,15 +1,14 @@
 package org.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.poi.ss.formula.functions.T;
 import org.custom.collection.MatchingCollectList;
 import org.custom.collection.MatchingKeyList;
 import org.custom.collection.MatchingList;
 import org.custom.function.SetValueFunction;
 import org.custom.function.TypeFunction;
 import org.utils.object.MatchingKey;
-import org.utils.roughly.MatchingInterface;
-import org.utils.roughly.MatchingCollectInterface;
+import org.utils.object.Matching;
+import org.utils.object.MatchingCollect;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -360,7 +359,7 @@ public class BaseUtil {
      * @param <R>       匹配字段类型
      */
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
-                                          List<MatchingInterface<T, I>> functions) {
+                                          List<Matching<T, I, ?>> functions) {
         if (functions != null && !functions.isEmpty()) {
             matching(obj1, obj2, fun1, fun2, (t, i) -> functions.forEach(fun -> fun.setValue(t, i)));
         }
@@ -395,7 +394,7 @@ public class BaseUtil {
      * @param matchingCollect 匹配取值对象
      * @param <T>             赋值对象类型
      */
-    public static <T> void matching(List<T> obj1, MatchingCollectInterface<T> matchingCollect) {
+    public static <T, I> void matching(List<T> obj1, MatchingCollect<T, I, ?> matchingCollect) {
         if (obj1 != null && matchingCollect != null) {
             for (T t : obj1) {
                 if (t != null) {
@@ -413,11 +412,11 @@ public class BaseUtil {
      * @param <T>              赋值对象类型
      */
     @SafeVarargs
-    public static <T> void matching(List<T> obj1, MatchingCollectInterface<T>... matchingCollects) {
+    public static <T, I> void matching(List<T> obj1, MatchingCollect<T, I, ?>... matchingCollects) {
         if (obj1 != null && matchingCollects != null && matchingCollects.length > 0) {
             for (T t : obj1) {
                 if (t != null) {
-                    for (MatchingCollectInterface<T> matchingCollect : matchingCollects) {
+                    for (MatchingCollect<T, I, ?> matchingCollect : matchingCollects) {
                         matchingCollect.setValue(t);
                     }
                 }
@@ -432,7 +431,7 @@ public class BaseUtil {
      * @param matchingCollectList 匹配取值对象集
      * @param <T>                 赋值对象类型
      */
-    public static <T> void matching(List<T> obj1, MatchingCollectList<T> matchingCollectList) {
+    public static <T, I> void matching(List<T> obj1, MatchingCollectList<T, I> matchingCollectList) {
         if (obj1 != null && matchingCollectList != null && matchingCollectList.isNotEmpty()) {
             for (T t : obj1) {
                 if (t != null) {
