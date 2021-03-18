@@ -25,6 +25,8 @@ public class Matching<T, I, R> implements MatchingInterface<T, I> {
 
     @Override
     public void setValue(T t, I i) {
-        assignFun.apply(t, valueFun.apply(i));
+        if (t != null && i != null) {
+            assignFun.apply(t, valueFun.apply(i));
+        }
     }
 }

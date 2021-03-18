@@ -375,7 +375,7 @@ public class BaseUtil {
 
     public static <T, I, R> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
                                           SetValueFunction<T, I> function) {
-        if (obj1 != null && obj1.size() > 0 && obj2 != null && obj2.size() > 0) {
+        if (obj1 != null && obj2 != null && obj2.size() > 0) {
             Map<R, I> riMap = toMapKey1(obj2, fun2);
             for (T t : obj1) {
                 if (t != null) {
@@ -396,7 +396,7 @@ public class BaseUtil {
      * @param <T>             赋值对象类型
      */
     public static <T> void matching(List<T> obj1, MatchingCollectInterface<T> matchingCollect) {
-        if (obj1 != null && obj1.size() > 0 && matchingCollect != null) {
+        if (obj1 != null && matchingCollect != null) {
             for (T t : obj1) {
                 if (t != null) {
                     matchingCollect.setValue(t);
@@ -414,7 +414,7 @@ public class BaseUtil {
      */
     @SafeVarargs
     public static <T> void matching(List<T> obj1, MatchingCollectInterface<T>... matchingCollects) {
-        if (obj1 != null && obj1.size() > 0 && matchingCollects != null && matchingCollects.length > 0) {
+        if (obj1 != null && matchingCollects != null && matchingCollects.length > 0) {
             for (T t : obj1) {
                 if (t != null) {
                     for (MatchingCollectInterface<T> matchingCollect : matchingCollects) {
@@ -433,7 +433,7 @@ public class BaseUtil {
      * @param <T>                 赋值对象类型
      */
     public static <T> void matching(List<T> obj1, MatchingCollectList<T> matchingCollectList) {
-        if (obj1 != null && obj1.size() > 0 && matchingCollectList != null && matchingCollectList.isNotEmpty()) {
+        if (obj1 != null && matchingCollectList != null && matchingCollectList.isNotEmpty()) {
             for (T t : obj1) {
                 if (t != null) {
                     matchingCollectList.forEach(m -> m.setValue(t));
@@ -451,14 +451,20 @@ public class BaseUtil {
      * @param <I> 取值数据类型
      */
     public static <T, I> void matching(List<T> setList, List<I> getList, MatchingKeyList<T, I> matchingKeyList){
-        matchingKeyList.forEach((key, value) -> {
-            Map<?, I> iMap = toMapKey1(getList, key);
-            for (T t : setList) {
-                for (MatchingKey<T, I, ?> tiMatchingKey : value) {
-                    tiMatchingKey.setValue(t, iMap);
+        if (matchingKeyList != null && getList != null && setList != null) {
+            matchingKeyList.forEach((key, value) -> {
+                if (key != null && value != null) {
+                    Map<?, I> iMap = toMapKey1(getList, key);
+                    if (!iMap.isEmpty()) {
+                        for (T t : setList) {
+                            for (MatchingKey<T, I, ?> tiMatchingKey : value) {
+                                tiMatchingKey.setValue(t, iMap);
+                            }
+                        }
+                    }
                 }
-            }
-        });
+            });
+        }
     }
 
     /**

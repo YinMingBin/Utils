@@ -30,11 +30,24 @@ public class MatchingKey<T, I, R>{
         this.matchingList = matchingList;
     }
 
+    /**
+     * 添加赋值对
+     * @param assignFun 赋值函数
+     * @param valueFun 取值函数
+     * @param <V> 值类型
+     */
     public <V> void add(SetValueFunction<T, V> assignFun, Function<I, V> valueFun){
         matchingList.add(assignFun, valueFun);
     }
 
+    /**
+     * 设置值
+     * @param t 赋值对象
+     * @param mapI 取值集合
+     */
     public void setValue(T t, Map<?, I> mapI) {
-        matchingList.forEach(m -> m.setValue(t, mapI.get(funT.apply(t))));
+        if (mapI != null && !mapI.isEmpty()) {
+            matchingList.forEach(m -> m.setValue(t, mapI.get(funT.apply(t))));
+        }
     }
 }
