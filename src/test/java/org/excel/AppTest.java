@@ -2,13 +2,17 @@ package org.excel;
 
 import com.sun.javafx.css.converters.StringConverter;
 import jdk.nashorn.internal.runtime.regexp.RegExp;
+import lombok.val;
 import org.apache.commons.codec.StringEncoderComparator;
+import org.apache.poi.ss.formula.functions.T;
 import org.custom.collection.MatchingCollectList;
+import org.custom.collection.MatchingKeyList;
 import org.custom.collection.MatchingList;
 import org.custom.function.VoidFunction;
 import org.junit.Test;
 import org.springframework.beans.propertyeditors.URIEditor;
 import org.utils.BaseUtil;
+import org.utils.object.MatchingKey;
 
 import javax.script.ScriptEngine;
 import javax.script.ScriptEngineManager;
@@ -19,6 +23,7 @@ import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -36,6 +41,12 @@ public class AppTest{
     public void test() throws UnsupportedEncodingException {
         System.out.println(URLEncoder.encode(" ", StandardCharsets.UTF_8.name()));
         System.out.println(numDistinct("anacondastreetracecar", "contra"));
+        BaseUtil.matching(new ArrayList<>(), new ArrayList<>(),
+                new MatchingKeyList<>(User::getSexId,
+                        new MatchingKey<>(Sex::getSexId,
+                                Sex::setSexName, User::getName),
+                        new MatchingKey<>(Sex::getSexId,
+                                Sex::setSexName, User::getName)));
     }
 
     private int sum = 0;

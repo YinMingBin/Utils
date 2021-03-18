@@ -1,10 +1,13 @@
 package org.utils;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.poi.ss.formula.functions.T;
 import org.custom.collection.MatchingCollectList;
+import org.custom.collection.MatchingKeyList;
 import org.custom.collection.MatchingList;
 import org.custom.function.SetValueFunction;
 import org.custom.function.TypeFunction;
+import org.utils.object.MatchingKey;
 import org.utils.roughly.MatchingInterface;
 import org.utils.roughly.MatchingCollectInterface;
 
@@ -437,6 +440,25 @@ public class BaseUtil {
                 }
             }
         }
+    }
+
+    /**
+     * 同数据多个匹配赋值
+     * @param setList 赋值数据集
+     * @param getList 取值数据集
+     * @param matchingKeyList 多个匹配赋值对
+     * @param <T> 赋值数据类型
+     * @param <I> 取值数据类型
+     */
+    public static <T, I> void matching(List<T> setList, List<I> getList, MatchingKeyList<T, I> matchingKeyList){
+        matchingKeyList.forEach((key, value) -> {
+            Map<?, I> iMap = toMapKey1(getList, key);
+            for (T t : setList) {
+                for (MatchingKey<T, I, ?> tiMatchingKey : value) {
+                    tiMatchingKey.setValue(t, iMap);
+                }
+            }
+        });
     }
 
     /**

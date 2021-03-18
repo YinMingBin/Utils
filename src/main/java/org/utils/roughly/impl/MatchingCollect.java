@@ -1,4 +1,4 @@
-package org.utils.definite;
+package org.utils.roughly.impl;
 
 import lombok.Data;
 import org.custom.collection.MatchingList;

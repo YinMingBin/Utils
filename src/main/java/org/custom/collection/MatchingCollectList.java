@@ -1,7 +1,7 @@
 package org.custom.collection;
 
 import org.utils.roughly.MatchingCollectInterface;
-import org.utils.definite.MatchingCollect;
+import org.utils.roughly.impl.MatchingCollect;
 
 import java.util.ArrayList;
 import java.util.List;
