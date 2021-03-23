@@ -323,15 +323,15 @@ public class BaseUtil {
     /**
      * 匹配赋值
      *
-     * @param obj1      赋值对象集
-     * @param obj2      取值对象集
-     * @param fun1      赋值对象匹配字段
-     * @param fun2      取值对象匹配字段
+     * @param obj1        赋值对象集
+     * @param obj2        取值对象集
+     * @param fun1        赋值对象匹配字段
+     * @param fun2        取值对象匹配字段
      * @param setValueFun 赋值函数
      * @param getValueFun 取值函数
-     * @param <T>       赋值对象类型
-     * @param <I>       取值对象类型
-     * @param <R>       匹配字段类型
+     * @param <T>         赋值对象类型
+     * @param <I>         取值对象类型
+     * @param <R>         匹配字段类型
      */
     public static <T, I, R, V> void matching(List<T> obj1, List<I> obj2, Function<T, R> fun1, Function<I, R> fun2,
                                              SetValueFunction<T, V> setValueFun, Function<I, V> getValueFun) {
@@ -443,13 +443,14 @@ public class BaseUtil {
 
     /**
      * 同数据多个匹配赋值
-     * @param setList 赋值数据集
-     * @param getList 取值数据集
+     *
+     * @param setList         赋值数据集
+     * @param getList         取值数据集
      * @param matchingKeyList 多个匹配赋值对
-     * @param <T> 赋值数据类型
-     * @param <I> 取值数据类型
+     * @param <T>             赋值数据类型
+     * @param <I>             取值数据类型
      */
-    public static <T, I> void matching(List<T> setList, List<I> getList, MatchingKeyList<T, I> matchingKeyList){
+    public static <T, I> void matching(List<T> setList, List<I> getList, MatchingKeyList<T, I> matchingKeyList) {
         if (matchingKeyList != null && getList != null && setList != null) {
             matchingKeyList.forEach((key, value) -> {
                 if (key != null && value != null) {
@@ -468,11 +469,12 @@ public class BaseUtil {
 
     /**
      * 只保存相同数据（两边都存在的数据）
+     *
      * @param list1 数据集1(两边都存在的数据会放到这里面)
      * @param list2 数据集2
-     * @param <T> 数据类型
+     * @param <T>   数据类型
      */
-    public static <T> void saveIdentical(Collection<T> list1, Collection<T> list2){
+    public static <T> void saveIdentical(Collection<T> list1, Collection<T> list2) {
         if (list1 != null) {
             Collection<T> list = new ArrayList<>();
             if (list2 != null) {
@@ -486,4 +488,5 @@ public class BaseUtil {
             list1.addAll(list);
         }
     }
+
 }

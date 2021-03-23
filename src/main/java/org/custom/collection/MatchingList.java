@@ -10,6 +10,7 @@ import java.util.function.Function;
 
 /**
  * 匹配赋值list
+ *
  * @author Administrator
  */
 public class MatchingList<T, I> {
@@ -17,12 +18,13 @@ public class MatchingList<T, I> {
 
     /**
      * 添加匹配赋值
+     *
      * @param assignFun 赋值函数
-     * @param valueFun 取值函数
-     * @param <R> 值类型
+     * @param valueFun  取值函数
+     * @param <R>       值类型
      * @return 本身
      */
-    public <R> MatchingList<T, I> add(SetValueFunction<T, R> assignFun, Function<I, R> valueFun){
+    public <R> MatchingList<T, I> add(SetValueFunction<T, R> assignFun, Function<I, R> valueFun) {
         matchingList.add(new Matching<>(assignFun, valueFun));
         return this;
     }
@@ -33,6 +35,7 @@ public class MatchingList<T, I> {
 
     /**
      * 判断是否有值
+     *
      * @return 是否有值
      */
     public boolean isNotEmpty() {

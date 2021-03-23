@@ -9,6 +9,7 @@ import java.util.function.Function;
 
 /**
  * Function
+ *
  * @author Administrator
  */
 @FunctionalInterface
@@ -16,6 +17,7 @@ public interface TypeFunction<T, R> extends Serializable, Function<T, R> {
 
     /**
      * 获取列名称
+     *
      * @param lambda ::
      * @return String
      */
@@ -33,6 +35,7 @@ public interface TypeFunction<T, R> extends Serializable, Function<T, R> {
 
     /**
      * get方法获取set方法名
+     *
      * @param lambda ::
      * @return String
      */

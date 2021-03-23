@@ -7,20 +7,23 @@ import java.util.function.Function;
 
 /**
  * 处理前端请求所有数据Map集
+ *
  * @author Administrator
  */
 public class QueryMap {
     private final Map<String, Function<Object, ?>> map = new HashMap<>(10);
 
-    public QueryMap add(String key){
+    public QueryMap add(String key) {
         map.put(key, val -> val);
         return this;
     }
-    public QueryMap add(String key, Function<Object, ?> value){
+
+    public QueryMap add(String key, Function<Object, ?> value) {
         map.put(key, value);
         return this;
     }
-    public QueryMap add(String key, Function<Object, ?>... values){
+
+    public QueryMap add(String key, Function<Object, ?>... values) {
         Function<Object, ?> value = val -> {
             for (Function<Object, ?> function : values) {
                 val = function.apply(val);
