@@ -13,13 +13,14 @@ import java.util.function.Function;
 
 /**
  * 匹配赋值
- * @author Administrator
+ *
  * @param <T> 赋值对象类型
  * @param <I> 取值对象类型
  * @param <R> 匹配字段类型
+ * @author Administrator
  */
 @Data
-public class MatchingCollect<T, I, R>{
+public class MatchingCollect<T, I, R> {
     private Map<R, I> iMap;
     private Function<T, R> tFun;
     private Function<I, R> iFun;

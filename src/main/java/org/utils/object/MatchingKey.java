@@ -8,9 +8,10 @@ import java.util.function.Function;
 
 /**
  * 同数据多个匹配赋值
+ *
  * @author Administrator
  */
-public class MatchingKey<T, I, R>{
+public class MatchingKey<T, I, R> {
     private final Function<T, R> funT;
     private final MatchingList<T, I> matchingList;
 
@@ -32,17 +33,19 @@ public class MatchingKey<T, I, R>{
 
     /**
      * 添加赋值对
+     *
      * @param assignFun 赋值函数
-     * @param valueFun 取值函数
-     * @param <V> 值类型
+     * @param valueFun  取值函数
+     * @param <V>       值类型
      */
-    public <V> void add(SetValueFunction<T, V> assignFun, Function<I, V> valueFun){
+    public <V> void add(SetValueFunction<T, V> assignFun, Function<I, V> valueFun) {
         matchingList.add(assignFun, valueFun);
     }
 
     /**
      * 设置值
-     * @param t 赋值对象
+     *
+     * @param t    赋值对象
      * @param mapI 取值集合
      */
     public void setValue(T t, Map<?, I> mapI) {

@@ -9,30 +9,32 @@ import java.util.Map;
 
 /**
  * 处理请求的所有参数
+ *
  * @author Administrator
  */
 public class QueryMapUtil {
 
     /**
      * 处理map
-     * @param queryMap 要处理的map
+     *
+     * @param queryMap    要处理的map
      * @param functionMap 处理函数集
      * @return 处理后的数据
      */
-    public static Map<String, Object> dispose(Map<String, Object> queryMap, QueryMap functionMap){
+    public static Map<String, Object> dispose(Map<String, Object> queryMap, QueryMap functionMap) {
         Map<String, Object> map = new HashMap<>(functionMap.getSize());
         functionMap.forEach((key, value) -> {
             int i = key.indexOf("-");
             String name = key;
-            if(i >= 0) {
+            if (i >= 0) {
                 String keyCopy = key;
                 key = keyCopy.substring(0, i);
                 name = keyCopy.substring(i + 1);
             }
             Object o = queryMap.get(key);
-            if(o != null) {
+            if (o != null) {
                 Object apply = value.apply(o);
-                if(apply != null){
+                if (apply != null) {
                     map.put(name, apply);
                 }
             }
@@ -42,13 +44,14 @@ public class QueryMapUtil {
 
     /**
      * 时间戳转时间
+     *
      * @param dateTime 时间戳
      * @return 时间
      */
-    public static Date dateTimeToDate(Object dateTime){
-        if(dateTime != null) {
+    public static Date dateTimeToDate(Object dateTime) {
+        if (dateTime != null) {
             String s = dateTime.toString();
-            if(!StringUtils.isEmpty(s)){
+            if (!StringUtils.isEmpty(s)) {
                 return new Date(Long.parseLong(s));
             }
         }
@@ -57,11 +60,12 @@ public class QueryMapUtil {
 
     /**
      * 转字符串
+     *
      * @param obj 对象
      * @return 字符串
      */
     public static String toString(Object obj) {
-        if(obj != null) {
+        if (obj != null) {
             return obj.toString();
         }
         return null;
@@ -69,11 +73,12 @@ public class QueryMapUtil {
 
     /**
      * 转Long
+     *
      * @param obj 对象
      * @return Long
      */
     public static Long toLong(Object obj) {
-        if(obj != null) {
+        if (obj != null) {
             return Long.valueOf(obj.toString());
         }
         return null;
@@ -81,11 +86,12 @@ public class QueryMapUtil {
 
     /**
      * 转Integer
+     *
      * @param obj 对象
      * @return Integer
      */
     public static Integer toInteger(Object obj) {
-        if(obj != null) {
+        if (obj != null) {
             return Integer.valueOf(obj.toString());
         }
         return null;

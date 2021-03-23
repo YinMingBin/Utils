@@ -25,7 +25,7 @@ public class MatchingCollectList<T, I> {
      * @return 本身
      */
     public <R> MatchingCollectList<T, I> add(List<I> iList, Function<T, R> tFun, Function<I, R> iFun, MatchingList<T, I> matchingList){
-        matchingCollects.add(new MatchingCollect<T, I, R>(iList, tFun, iFun, matchingList));
+        matchingCollects.add(new MatchingCollect<>(iList, tFun, iFun, matchingList));
         return this;
     }
 
