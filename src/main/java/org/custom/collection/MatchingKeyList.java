@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 /**
  * 同数据多个匹配赋值list
  *
- * @author Administrator
+ * @author YinMingBin
  */
 public class MatchingKeyList<T, I> {
     private final Map<Function<I, ?>, List<? extends MatchingKey<T, I, ?>>> map = new HashMap<>();

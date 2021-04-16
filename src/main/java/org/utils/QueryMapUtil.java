@@ -10,7 +10,7 @@ import java.util.Map;
 /**
  * 处理请求的所有参数
  *
- * @author Administrator
+ * @author YinMingBin
  */
 public class QueryMapUtil {
 

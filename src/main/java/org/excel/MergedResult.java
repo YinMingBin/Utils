@@ -3,7 +3,7 @@ package org.excel;
 import lombok.Data;
 
 /**
- * @author Administrator
+ * @author YinMingBin
  */
 @Data
 public class MergedResult {

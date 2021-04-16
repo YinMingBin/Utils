@@ -3,7 +3,7 @@ package org.custom.function;
 /**
  * 无返回值函数
  *
- * @author Administrator
+ * @author YinMingBin
  */
 @FunctionalInterface
 public interface VoidFunction {

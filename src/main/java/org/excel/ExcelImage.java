@@ -4,7 +4,7 @@ import lombok.Data;
 
 /**
  * excel导出图片
- * @author Administrator
+ * @author YinMingBin
  */
 @Data
 public class ExcelImage {

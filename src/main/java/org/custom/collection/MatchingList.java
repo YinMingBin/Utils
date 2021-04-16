@@ -11,7 +11,7 @@ import java.util.function.Function;
 /**
  * 匹配赋值list
  *
- * @author Administrator
+ * @author YinMingBin
  */
 public class MatchingList<T, I> {
     private final List<Matching<T, I, ?>> matchingList = new ArrayList<>();

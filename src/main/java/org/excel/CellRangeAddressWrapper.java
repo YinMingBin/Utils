@@ -2,6 +2,9 @@ package org.excel;
 
 import org.apache.poi.ss.util.CellRangeAddress;
 
+/**
+ * @author Administrator
+ */
 public class CellRangeAddressWrapper implements Comparable<CellRangeAddressWrapper> {
 
     public CellRangeAddress range;

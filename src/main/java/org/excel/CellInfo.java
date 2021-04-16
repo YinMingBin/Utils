@@ -5,7 +5,7 @@ import org.apache.poi.ss.usermodel.CellStyle;
 
 /**
  * 单元格信息
- * @author Administrator
+ * @author YinMingBin
  */
 @Data
 public class CellInfo {

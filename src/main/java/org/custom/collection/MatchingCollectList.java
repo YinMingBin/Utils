@@ -9,7 +9,7 @@ import java.util.function.Function;
 
 /**
  * 多个匹配赋值
- * @author Administrator
+ * @author YinMingBin
  */
 public class MatchingCollectList<T, I> {
     private final List<MatchingCollect<T, I, ?>> matchingCollects = new ArrayList<>();
@@ -20,7 +20,6 @@ public class MatchingCollectList<T, I> {
      * @param tFun 赋值对象的匹配字段函数
      * @param iFun 取值对象的匹配字段函数
      * @param matchingList 要赋值的字段
-     * @param <I> 取值对象类型
      * @param <R> 匹配字段类型
      * @return 本身
      */

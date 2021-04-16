@@ -5,7 +5,7 @@ package org.custom.function;
  *
  * @param <T> 对象类型
  * @param <V> 值类型
- * @author Administrator
+ * @author YinMingBin
  */
 @FunctionalInterface
 public interface SetValueFunction<T, V> {

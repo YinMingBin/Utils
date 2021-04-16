@@ -8,7 +8,7 @@ import java.util.function.Function;
 /**
  * 处理前端请求所有数据Map集
  *
- * @author Administrator
+ * @author YinMingBin
  */
 public class QueryMap {
     private final Map<String, Function<Object, ?>> map = new HashMap<>(10);

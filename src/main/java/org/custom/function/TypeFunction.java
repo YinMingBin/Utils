@@ -10,7 +10,7 @@ import java.util.function.Function;
 /**
  * Function
  *
- * @author Administrator
+ * @author YinMingBin
  */
 @FunctionalInterface
 public interface TypeFunction<T, R> extends Serializable, Function<T, R> {

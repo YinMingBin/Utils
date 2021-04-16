@@ -21,7 +21,7 @@ import java.util.*;
 /**
  * 数据导出成excel
  *
- * @author Administrator
+ * @author YinMingBin
  */
 public class ExcelUtil {
     private Map<String, CellInfo> cellInfo = new HashMap<>();

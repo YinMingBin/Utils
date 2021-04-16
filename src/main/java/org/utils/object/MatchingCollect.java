@@ -4,6 +4,7 @@ import lombok.Data;
 import org.custom.collection.MatchingList;
 import org.custom.function.SetValueFunction;
 import org.utils.BaseUtil;
+import org.utils.ListUtil;
 
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +28,7 @@ public class MatchingCollect<T, I, R> {
     private MatchingList<T, I> matchingList;
 
     public MatchingCollect(List<I> iList, Function<T, R> tFun, Function<I, R> iFun, MatchingList<T, I> matchingList) {
-        this.iMap = iList != null ? BaseUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
+        this.iMap = iList != null ? ListUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
         this.tFun = tFun;
         this.iFun = iFun;
         this.matchingList = matchingList;
@@ -35,7 +36,7 @@ public class MatchingCollect<T, I, R> {
 
     public MatchingCollect(List<I> iList, Function<T, R> tFun, Function<I, R> iFun,
                            SetValueFunction<T, R> assignFun, Function<I, R> valueFun) {
-        this.iMap = iList != null ? BaseUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
+        this.iMap = iList != null ? ListUtil.toMapKey1(iList, iFun) : new HashMap<>(0);
         this.tFun = tFun;
         this.iFun = iFun;
         this.matchingList = new MatchingList<>();
