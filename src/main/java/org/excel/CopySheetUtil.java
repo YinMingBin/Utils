@@ -34,28 +34,32 @@ public final class CopySheetUtil {
                 }
             }
         }
-        for (int i = 0; i <= maxColumnNum; i++) {    //设置列宽
+        //设置列宽
+        for (int i = 0; i <= maxColumnNum; i++) {
             newSheet.setColumnWidth(i, sheet.getColumnWidth(i)+250);
         }
     }
 
     /**
      * 复制合并单元格样式
-     * @param srcSheet
-     * @param destSheet
-     * @param srcRow
-     * @param destRow
-     * @param styleMap
+     * @param srcSheet Sheet
+     * @param destSheet Sheet
+     * @param srcRow Row
+     * @param destRow Row
+     * @param styleMap Map
      */
     public static void copyRow(Sheet srcSheet, Sheet destSheet,
                                Row srcRow, Row destRow,
                                Map<Integer, CellStyle> styleMap) {
         Set<CellRangeAddressWrapper> mergedRegions = new TreeSet<>();
         destRow.setHeight(srcRow.getHeight());
-        int deltaRows = destRow.getRowNum() - srcRow.getRowNum(); //如果copy到另一个sheet的起始行数不同
+        //如果copy到另一个sheet的起始行数不同
+        int deltaRows = destRow.getRowNum() - srcRow.getRowNum();
         for (int j = srcRow.getFirstCellNum(); j <= srcRow.getLastCellNum(); j++) {
-            Cell oldCell = srcRow.getCell(j); // old cell
-            Cell newCell = destRow.getCell(j); // new cell
+            // old cell
+            Cell oldCell = srcRow.getCell(j);
+            // new cell
+            Cell newCell = destRow.getCell(j);
             if (oldCell != null) {
                 if (newCell == null) {
                     newCell = destRow.createCell(j);
@@ -83,9 +87,9 @@ public final class CopySheetUtil {
     /**
      * 把原来的Sheet中cell（列）的样式和数据类型复制到新的sheet的cell（列）中
      *
-     * @param oldCell
-     * @param newCell
-     * @param styleMap
+     * @param oldCell Cell
+     * @param newCell Cell
+     * @param styleMap Map
      */
     public static void copyCell(Cell oldCell, Cell newCell, Map<Integer, CellStyle> styleMap) {
         if (styleMap != null) {
@@ -120,7 +124,13 @@ public final class CopySheetUtil {
 
     }
 
-    // 获取merge对象
+    /**
+     *  获取merge对象
+     * @param sheet sheet
+     * @param rowNum int
+     * @param cellNum short
+     * @return CellRangeAddress
+     */
     public static CellRangeAddress getMergedRegion(Sheet sheet, int rowNum,
                                                    short cellNum) {
         for (int i = 0; i < sheet.getNumMergedRegions(); i++) {

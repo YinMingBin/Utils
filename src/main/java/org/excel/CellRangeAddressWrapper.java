@@ -2,6 +2,8 @@ package org.excel;
 
 import org.apache.poi.ss.util.CellRangeAddress;
 
+import java.util.Objects;
+
 /**
  * @author Administrator
  */
@@ -26,4 +28,16 @@ public class CellRangeAddressWrapper implements Comparable<CellRangeAddressWrapp
         }
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {return true;}
+        if (o == null || getClass() != o.getClass()) {return false;}
+        CellRangeAddressWrapper that = (CellRangeAddressWrapper) o;
+        return Objects.equals(range, that.range);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(range);
+    }
 }
