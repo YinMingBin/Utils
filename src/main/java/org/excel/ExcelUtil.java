@@ -320,10 +320,10 @@ public class ExcelUtil {
                 byte[] bytes = image.getBytes();
                 MergedResult mergedRegion = isMergedRegion(sheet, rowIndex, cellIndex);
                 boolean merged = mergedRegion.isMerged();
-                int startX = 0;
-                int startY = 0;
-                int endX = 255;
-                int endY = 255;
+                int startX = image.getStartX();
+                int startY = image.getStartY();
+                int endX = image.getEndX();
+                int endY = image.getEndY();
                 int startCell = (merged ? mergedRegion.getFirstColumn() : cellIndex);
                 int startRow = (merged ? mergedRegion.getFirstRow() : rowIndex);
                 int endCell = (merged ? mergedRegion.getLastColumn() : cellIndex);

@@ -8,9 +8,25 @@ import lombok.Data;
  */
 @Data
 public class ExcelImage {
-    byte[] bytes;
+    private byte[] bytes;
+    private int startX;
+    private int startY;
+    private int endX;
+    private int endY;
 
     public ExcelImage(byte[] bytes) {
         this.bytes = bytes;
+        this.startX = 0;
+        this.startY = 0;
+        this.endX = 255;
+        this.endY = 255;
+    }
+
+    public ExcelImage(byte[] bytes, int startX, int startY, int endX, int endY) {
+        this.bytes = bytes;
+        this.startX = startX;
+        this.startY = startY;
+        this.endX = endX;
+        this.endY = endY;
     }
 }
